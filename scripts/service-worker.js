@@ -4,30 +4,23 @@ chrome?.sidePanel
 	?.setPanelBehavior({ openPanelOnActionClick: false })
 	?.catch((error) => console.error(error));
 
-const setBadge = (show) => {
+const setBadge = (show, tabId) => {
 	if (show) {
-		chrome.action.setBadgeText({
-			text: ':-)',
-		});
-		chrome.action.setBadgeTextColor({
-			color: [255, 255, 255, 255],
-		});
-		chrome.action.setBadgeBackgroundColor({
-			color: [0, 0, 0, 128],
+		chrome.action.setIcon({
+			path: '../assets/img/con-apoyo.png',
+			tabId,
 		});
 	} else {
-		chrome.action.setBadgeText({
-			text: ':-(',
-		});
-		chrome.action.setBadgeTextColor({
-			color: [255, 255, 255, 255],
-		});
-		chrome.action.setBadgeBackgroundColor({
-			color: [255, 0, 0, 255],
+		chrome.action.setIcon({
+			path: '../assets/img/sin-apoyo.png',
+			tabId,
 		});
 	}
+	// chrome.sidePanel
+	// 	.setPanelBehavior({ openPanelOnActionClick: show })
+	// 	.catch((error) => console.error(error));
 };
-const checkAvailableAid = (url) => {
+const checkAvailableAid = (url, tabId) => {
 	if (!url || url.indexOf('http') !== 0) {
 		return;
 	}
@@ -42,19 +35,13 @@ const checkAvailableAid = (url) => {
 		},
 		(reason) => {
 			console.warning('rejected', reason);
-			setBadge(false);
-			chrome.sidePanel
-				.setPanelBehavior({ openPanelOnActionClick: false })
-				.catch((error) => console.error(error));
+			setBadge(false, tabId);
 		}
 	);
 	queryPictos.then((json) => {
 		// No hay ayudas para esta URL.
 		if (json === null) {
-			setBadge(false);
-			chrome.sidePanel
-				.setPanelBehavior({ openPanelOnActionClick: false })
-				.catch((error) => console.error(error));
+			setBadge(false, tabId);
 			return;
 		}
 		console.log(json);
@@ -65,10 +52,7 @@ const checkAvailableAid = (url) => {
 			url: json,
 		});
 		LAST_URL = json;
-		setBadge(true);
-		chrome.sidePanel
-			.setPanelBehavior({ openPanelOnActionClick: true })
-			.catch((error) => console.error(error));
+		setBadge(true, tabId);
 	});
 };
 
@@ -86,12 +70,12 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	if (changeInfo.status === 'loading' && changeInfo.url) {
 		// chequear → changeInfo.url
 		console.info('onUpdated:loading', changeInfo);
-		checkAvailableAid(changeInfo?.url);
+		checkAvailableAid(changeInfo?.url, tabId);
 	}
 	if (changeInfo.status === 'complete') {
 		// chequear también? → changeInfo.tab.url
 		console.info('onUpdated:complete', changeInfo);
-		checkAvailableAid(changeInfo?.tab?.url);
+		checkAvailableAid(changeInfo?.tab?.url, tabId);
 	}
 });
 chrome.tabs.onCreated.addListener((tab) => {
@@ -104,7 +88,7 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
 		if (!tab.url) {
 			return;
 		}
-		checkAvailableAid(tab.url);
+		checkAvailableAid(tab.url, activeInfo.tabId);
 		// checkAvailableAid();
 	});
 	// chrome.tabs.query(
@@ -138,11 +122,18 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
 chrome.action.onClicked.addListener((tab) => {
 	console.log('action:onclicked', tab);
 	console.info({ LAST_URL });
-	chrome.runtime.sendMessage({
-		action: 'pictos__check',
-		status: 'success',
-		url: LAST_URL,
-	});
+	chrome.sidePanel.open(
+		{
+			tabId: tab.id,
+		},
+		() => {
+			chrome.runtime.sendMessage({
+				action: 'pictos__check',
+				status: 'success',
+				url: LAST_URL,
+			});
+		}
+	);
 });
 chrome?.runtime?.onMessage?.addListener((message, sender, sendResponse) => {
 	if (message?.action === 'pictos__iframe-ready') {
