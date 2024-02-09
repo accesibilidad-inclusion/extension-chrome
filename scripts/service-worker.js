@@ -46,13 +46,13 @@ const checkAvailableAid = (url, tabId) => {
 		}
 		console.log(json);
 		console.log('chequeado', json);
+		LAST_URL = json;
+		setBadge(true, tabId);
 		chrome?.runtime?.sendMessage({
 			action: 'pictos__check',
 			status: 'success',
 			url: json,
 		});
-		LAST_URL = json;
-		setBadge(true, tabId);
 	});
 };
 
@@ -82,46 +82,17 @@ chrome.tabs.onCreated.addListener((tab) => {
 	console.log({ tab });
 });
 chrome.tabs.onActivated.addListener((activeInfo) => {
-	console.log({ activeInfo });
+	console.log('tabs.onActivated', { activeInfo });
 	chrome.tabs.get(activeInfo.tabId, (tab) => {
-		console.log(tab);
+		console.log('tabs.onActivated::anoymous', tab);
 		if (!tab.url) {
 			return;
 		}
 		checkAvailableAid(tab.url, activeInfo.tabId);
-		// checkAvailableAid();
 	});
-	// chrome.tabs.query(
-	// 	{
-	// 		active: true,
-	// 		currentWindow: true,
-	// 	},
-	// 	(tabs) => {
-	// 		console.log(tabs);
-	// 		const currentTab = tabs[0];
-	// 		if (currentTab.url.indexOf('http') !== 0) {
-	// 			return setBadge(false);
-	// 		}
-	// 		const shouldShow = Math.round(Math.random());
-	// 		setBadge(shouldShow);
-
-	// 		console.log({ queryURL });
-
-	// 		// const sidePanelOptions = chrome.sidePanel.getOptions();
-	// 		// const currentSidePanel = chrome.sidePanel.getPanelBehavior();
-	// 		// console.debug({ sidePanelOptions, currentSidePanel });
-
-	// 		// window.sessionStorage.setItem('currentUrl', queryURL.toString());
-
-	// 		// ServiceWorker.postMessage()?
-
-	// 		console.log(tabs);
-	// 	}
-	// );
 });
 chrome.action.onClicked.addListener((tab) => {
-	console.log('action:onclicked', tab);
-	console.info({ LAST_URL });
+	console.log('action:onclicked', { tab, LAST_URL });
 	chrome.sidePanel.open(
 		{
 			tabId: tab.id,
@@ -130,7 +101,7 @@ chrome.action.onClicked.addListener((tab) => {
 			chrome.runtime.sendMessage({
 				action: 'pictos__check',
 				status: 'success',
-				url: LAST_URL,
+				url: LAST_URL.replace('#', ''),
 			});
 		}
 	);

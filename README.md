@@ -19,13 +19,14 @@ Clickea el botón para **Cargar extensión sin empaquetar** y abre la carpeta do
 - [ ] https://developer.chrome.com/docs/extensions/develop/concepts/messaging
 - [ ] https://developer.chrome.com/docs/extensions/reference/api/tabs#method-sendMessage
 - [ ] https://web.dev/articles/two-way-communication-guide
+- [ ] https://groups.google.com/a/chromium.org/g/chromium-extensions/c/Y5pYf1iv2k4
 
 ---
 
 # TODO
 
-- [ ] mejorar diseño ícono de extensión y estados
-- [ ] modificar ícono de acuerdo a disponibilidad de ayudas
+- [x] mejorar diseño ícono de extensión y estados
+- [x] modificar ícono de acuerdo a disponibilidad de ayudas
 - [x] limitar visibilidad de sidepanel según disponibilidad de ayuda
 - [x] enlazar URL de pestaña con sidepanel (para abrir pictos en ayuda para el sitio visible)
 -- BETA: 12 Feb --

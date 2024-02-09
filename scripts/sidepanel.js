@@ -1,3 +1,7 @@
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+	console.info('Message received pre DOMCONTENTLOADED');
+	console.info({ message, sender, sendResponse });
+});
 document.addEventListener('DOMContentLoaded', () => {
 	console.log('sidepanel here we go');
 	chrome.runtime.sendMessage({
