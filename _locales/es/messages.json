@@ -1,0 +1,30 @@
+{
+	"extensionName": {
+		"message": "Apoyos web de PICTOS",
+		"description": "Nombre de la extensión"
+	},
+	"extensionDescription": {
+		"message": "Apoyos para realizar tareas en internet de PICTOS",
+		"description": "Descripción de la extensión"
+	},
+	"extensionActionDefaultTitle":{
+		"message": "Clickea para abrir PICTOS",
+		"description": "Título de la acción por defecto"
+	},
+	"extensionApiUrl": {
+		"message": "https://api.pictos.cl/api/checkUrl",
+		"description": "URL de la API de PICTOS"
+	},
+	"overlayText": {
+		"message": "Este sitio web cuenta con apoyos web de PICTOS.",
+		"description": "Texto que se muestra en el overlay"
+	},
+	"overlayTextCallToAction":{
+		"message": "Revisa las ayudas disponibles aquí",
+		"description": "Llamado a la acción del overlay"
+	},
+	"overlayTextClose":{
+		"message": "Cerrar",
+		"description": "Texto botón cerrar overlay"
+	}
+}

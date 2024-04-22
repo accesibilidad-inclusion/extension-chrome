@@ -29,9 +29,8 @@ Clickea el botón para **Cargar extensión sin empaquetar** y abre la carpeta do
 - [x] modificar ícono de acuerdo a disponibilidad de ayudas
 - [x] limitar visibilidad de sidepanel según disponibilidad de ayuda
 - [x] enlazar URL de pestaña con sidepanel (para abrir pictos en ayuda para el sitio visible)
--- BETA: 12 Feb --
-- [ ] Onboarding extensión (?)
-- [ ] pantalla "no hay ayuda, quieres agregar?"
--- RELEASE CANDIDATE: 01 marzo --
+- [x] mostrar overlay sobre página al encontrar ayudas
+- [x] modificar ícono de disponibilidad
+- [ ] si no hay ayuda → pantalla evaluar / pedir ayuda
+- [ ] cambiar "cerrar" por "salir" en la app
 - [ ] preparar contenidos y assets para subir extensión a store
--- RELEASE: 08 marzo --
