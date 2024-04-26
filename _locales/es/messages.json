@@ -15,6 +15,10 @@
 		"message": "https://api.pictos.cl/api/checkUrl",
 		"description": "URL de la API de PICTOS"
 	},
+	"extensionNotFoundUrl":{
+		"message": "https://app.pictos.cl/sin-ayuda-disponible",
+		"description": "URL de la página de PICTOS cuando no hay apoyos disponibles"
+	},
 	"overlayText": {
 		"message": "Este sitio web cuenta con apoyos web de PICTOS.",
 		"description": "Texto que se muestra en el overlay"

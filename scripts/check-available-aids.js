@@ -5,7 +5,7 @@
  */
 function PICTOS_checkAvailableAid(url) {
 	// Nunca consultar para URLs que no son HTTP
-	if (!url || url.indexOf('http') !== 0) {
+	if (!url || url.indexOf('http') !== 0 || !URL.canParse(url)) {
 		return;
 	}
 	const API_URL = chrome.i18n.getMessage('extensionApiURL');
@@ -32,7 +32,7 @@ function PICTOS_checkAvailableAid(url) {
 		);
 		const resultUrl = queryPictos.then((json) => {
 			try {
-				if (!json) {
+				if (!json || !URL.canParse(json)) {
 					return null;
 				}
 				const iframeURL = new URL(json);
