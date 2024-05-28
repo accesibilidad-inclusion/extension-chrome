@@ -12,8 +12,17 @@ Puedes [conocer más sobre PICTOS](https://www.pictos.cl/) en su sitio web [http
 
 # Instalación en modo desarrollo
 
-- Clona el repositorio [https://github.com/accesibilidad-inclusion/extension-chrome](https://github.com/accesibilidad-inclusion/extension-chrome) a una carpeta local.
-- Cambia de branch.
+## Clona el repositorio [https://github.com/accesibilidad-inclusion/extension-chrome](https://github.com/accesibilidad-inclusion/extension-chrome) a una carpeta local.
+
+```sh
+git clone https://github.com/accesibilidad-inclusion/extension-chrome
+```
+
+## Cambia de branch.
+
+```sh
+git switch refactor/vue
+```
 
 En Chromium/Chrome, ingresa a `chrome://extensions/` y habilita el **Modo de desarrollador**.
 
