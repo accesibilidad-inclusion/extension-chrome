@@ -9,31 +9,62 @@
 
     const steps = ref<Step[]>([]);
     const showStepsDetails = ref<boolean>(false);
+    const image = ref<string | undefined>(undefined);
 
     const buttonText = computed((): string => (recording.value ? "Detener" : "Grabar"));
 
-    const toggle = (): void => {
+    const toggle = () => {
         recording.value = !recording.value;
     };
 
-    const addStep = (): void => {
+    const addStep = async () => {
+        // chrome.tabs.query({ currentWindow: true, active: true })
+        //     .then((tabs) => tabs[0])
+        //     .then((currentTab) => {
+        //         chrome.runtime.sendMessage({
+        //             action: "pictos__screenshot-take",
+        //             currentTabId: currentTab.id,
+        //             currentTabTitle: currentTab.title,
+        //         });
+        //     });
+        chrome.tabs.captureVisibleTab(
+            {
+                format: "png",
+            },
+            (dataUrl) => {
+                console.log(dataUrl);
+                image.value = dataUrl;
+            },
+        );
+
         steps.value.push({
             click: Date.now()
         });
     };
-    const toggleSteps = (): void => {
+    const toggleSteps = () => {
        showStepsDetails.value = !showStepsDetails.value;
     };
-    const clearSteps = (): void => {
+    const clearSteps = () => {
         steps.value = [];
         toggle();
+    };
+
+    const showImage = async () => {
+        chrome.runtime.sendMessage({ action: "pictos__screenshot-get" }, (response) => {
+            const { imageUrl } = response;
+            image.value = imageUrl;
+            console.log(imageUrl);
+        });
     };
 </script>
 
 <template>
     <div v-if="recording" class="p-4 mt-4 text-center">
         <button @click="addStep" class="bg-gray-500 text-white py-2 px-4 rounded hover:bg-blue-600">
-            TEMP BUTTON
+            TEMP ADD STEP
+        </button>
+        <button @click="showImage" class="bg-gray-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+            TEMP SHOW IMAGE
         </button>
         <div class="flex flex-col">
             <p>{{ steps.length }} pasos</p>
@@ -46,6 +77,7 @@
                 {{ step.click }}
             </li>
         </ul>
+        <img v-if="image" :src="image" />
     </div>
     <iframe v-else title="pictos-frame" id="pictos-frame" src="https://app.pictos.cl/inicio?view=embed" width="100%" height="100%" style="border:0;margin:0">
     </iframe>

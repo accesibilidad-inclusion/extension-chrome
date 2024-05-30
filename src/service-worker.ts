@@ -1,5 +1,101 @@
 /// <reference types="chrome"/>
-chrome.sidePanel
-  .setPanelBehavior({ openPanelOnActionClick: true })
-  .catch((error: any) => console.error(error))
 
+import { checkAvailableAid } from "@/scripts/check-available-aids";
+import type { PictosAction, PictosActionUrl } from "@/scripts/types";
+
+chrome.sidePanel
+    .setPanelBehavior({ openPanelOnActionClick: false })
+    .catch((error) => console.error(error));
+
+chrome.action.onClicked.addListener((tab) => {
+    chrome.sidePanel
+        .open({
+            tabId: tab.id,
+            windowId: tab.windowId,
+        })
+        .then(() => {
+            checkAvailableAid(tab.url)?.then((url) => {
+                if (url) {
+                    chrome.runtime.sendMessage({
+                        action: "pictos__sidepanel-show-aid",
+                        url: url,
+                    });
+                } else {
+                    chrome.runtime.sendMessage({
+                        action: "pictos__sidepanel-empty",
+                        url: tab.url,
+                    });
+                }
+            });
+        });
+});
+
+const onAidAvailable = (sender: chrome.runtime.MessageSender) => {
+    if (!sender.tab) {
+        console.error("tabId incorrecto!");
+        return;
+    }
+
+    chrome.action.setIcon({
+        path: "./assets/img/con-apoyo-alt.png",
+        tabId: sender.tab.id,
+    });
+}
+
+const onOverlayOpenSidepanel = (action: PictosActionUrl, sender: chrome.runtime.MessageSender) => {
+    if (!sender.tab) {
+        console.error("tabId incorrecto!");
+        return;
+    }
+
+    chrome.sidePanel
+        .open({
+            tabId: sender.tab.id,
+            windowId: sender.tab.windowId,
+        })
+        .then(() => {
+            setTimeout(() => {
+                chrome.runtime.sendMessage({
+                    action: "pictos__sidepanel-show-aid",
+                    url: action.url,
+                });
+            }, 50);
+        });
+}
+
+let imageUrl: string;
+const onScreenshotGet = (sendResponse: (response?: any) => void) => {
+    sendResponse({ imageUrl });
+}
+
+const onScreenshotTake = () => {
+    chrome.tabs.captureVisibleTab(
+        {
+            format: "png",
+        },
+        (dataUrl) => {
+            imageUrl = dataUrl;
+        },
+    );
+}
+
+const addedListener = async (message: PictosAction, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
+    switch (message.action) {
+        case "pictos__aid-available":
+            onAidAvailable(sender);
+            break;
+        case "pictos__overlay-open-sidepanel":
+            onOverlayOpenSidepanel(message, sender);
+            break;
+        case "pictos__screenshot-take":
+            onScreenshotTake();
+            break;
+        case "pictos__screenshot-get":
+            onScreenshotGet(sendResponse);
+            break;
+        default:
+            break;
+    }
+}
+
+chrome.runtime.onMessage.addListener(addedListener);
