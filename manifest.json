@@ -45,6 +45,7 @@
                 "src/scripts/overlay.ts",
                 "src/scripts/sidepanel.ts",
                 "src/scripts/check-available-aids.ts",
+                "src/scripts/capture.ts",
                 "src/scripts/types.ts"
             ],
             "css": [
