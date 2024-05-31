@@ -63,35 +63,13 @@ const onOverlayOpenSidepanel = (action: PictosActionUrl, sender: chrome.runtime.
         });
 }
 
-let imageUrl: string;
-const onScreenshotGet = (sendResponse: (response?: any) => void) => {
-    sendResponse({ imageUrl });
-}
-
-const onScreenshotTake = () => {
-    chrome.tabs.captureVisibleTab(
-        {
-            format: "png",
-        },
-        (dataUrl) => {
-            imageUrl = dataUrl;
-        },
-    );
-}
-
-const addedListener = async (message: PictosAction, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
+const addedListener = async (message: PictosAction, sender: chrome.runtime.MessageSender) => {
     switch (message.action) {
         case "pictos__aid-available":
             onAidAvailable(sender);
             break;
         case "pictos__overlay-open-sidepanel":
             onOverlayOpenSidepanel(message, sender);
-            break;
-        case "pictos__screenshot-take":
-            onScreenshotTake();
-            break;
-        case "pictos__screenshot-get":
-            onScreenshotGet(sendResponse);
             break;
         default:
             break;
