@@ -1,14 +1,16 @@
 {
     "name": "pictos",
-    "version": "0.0.0",
     "private": true,
+    "version": "0.2.0",
+    "type": "module",
     "scripts": {
+        "dev": "cross-env NODE_ENV=development vite build --watch",
         "build": "run-p type-check \"build-only {@}\" --",
+        "type-check": "vue-tsc --build --force",
+        "build-only": "vite build",
         "test:unit": "vitest",
         "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
-        "build-only": "vite build",
-        "format": "prettier --write src/",
-        "type-check": "vue-tsc --build --force"
+        "format": "prettier --write src/"
     },
     "dependencies": {
         "vue": "^3.4.27",
@@ -28,9 +30,11 @@
         "@vue/test-utils": "^2.4.6",
         "@vue/tsconfig": "^0.5.1",
         "autoprefixer": "^10.4.19",
+        "cross-env": "^7.0.3",
         "cssnano": "^7.0.1",
         "eslint": "^8.57.0",
         "eslint-plugin-vue": "^9.26.0",
+        "hot-reload-extension-vite": "^1.0.13",
         "jsdom": "^24.1.0",
         "npm-run-all2": "^6.2.0",
         "postcss": "^8.4.38",
@@ -40,6 +44,5 @@
         "vite": "^5.2.12",
         "vitest": "^1.6.0",
         "vue-tsc": "^2.0.19"
-    },
-    "type": "module"
+    }
 }
