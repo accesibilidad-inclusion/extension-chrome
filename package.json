@@ -8,6 +8,7 @@
         "build": "run-p type-check \"build-only {@}\" --",
         "type-check": "vue-tsc --build --force",
         "build-only": "vite build",
+        "zip": "node .scripts/zip.cjs",
         "test:unit": "vitest",
         "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
         "format": "prettier --write src/"
@@ -29,6 +30,7 @@
         "@vue/eslint-config-typescript": "^13.0.0",
         "@vue/test-utils": "^2.4.6",
         "@vue/tsconfig": "^0.5.1",
+        "archiver": "^7.0.1",
         "autoprefixer": "^10.4.19",
         "cross-env": "^7.0.3",
         "cssnano": "^7.0.1",
