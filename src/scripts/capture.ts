@@ -73,24 +73,3 @@ interactiveElements.forEach((el: Element) => {
     chrome.runtime.sendMessage({ action: "addStep" });
   });
 });
-
-// Send a message with the interactive elements to the background script
-chrome.runtime.sendMessage({
-  action: 'pictos__interactive-elements',
-  elements: interactiveElements.map(el => ({
-    tagName: el.tagName,
-    textContent: el.textContent?.trim() || ''
-  }))
-});
-
-// Handle messages from the background script
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message?.action === 'pictos__request-interactive-elements') {
-    sendResponse({
-      elements: interactiveElements.map(el => ({
-        tagName: el.tagName,
-        textContent: el.textContent?.trim() || ''
-      }))
-    });
-  }
-});
