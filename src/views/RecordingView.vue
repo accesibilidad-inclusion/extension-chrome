@@ -20,44 +20,40 @@ const stopRecording = () => {
 };
 
 chrome.runtime.onMessage.addListener((request) => {
+
     if (request.action === "addStep" && recording.value) {
-        addStep();
+        if (request.dataUrl) {
+            addStep(request.dataUrl);
+        }
+        else {
+            console.error("Error al capturar la imagen");
+        }
     }
+
+    return true;
 });
 
-const addStep = () => {
-    chrome.tabs.captureVisibleTab(
-        {
-            format: "png",
-        },
-        (dataUrl) => {
+const addStep = (dataUrl: string) => {
 
-            if (dataUrl) {
-                const newStep = {
-                    screenshotUrl: dataUrl,
-                    counter: steps.value.length + 1,
-                    description: "Descripción del paso"
-                }
+    const newStep = {
+        screenshotUrl: dataUrl,
+        counter: steps.value.length + 1,
+        description: "Descripción del paso"
+    }
 
-                steps.value.push(newStep);
+    steps.value.push(newStep);
 
-                // scroll to the bottom with a smooth animation
-                nextTick(() => {
-                    const container = document.querySelector('#screenshots-container');
-                    if (container) {
-                        const lastStep = container.lastElementChild;
-                        if (lastStep) {
-                            lastStep.scrollIntoView({ behavior: 'smooth' });
-                        }
-                    }
-                });
+    // scroll to the bottom with a smooth animation
+    nextTick(() => {
+        const container = document.querySelector('#screenshots-container');
+        if (container) {
+            const lastStep = container.lastElementChild;
+            if (lastStep) {
+                lastStep.scrollIntoView({ behavior: 'smooth' });
             }
-            else {
-                console.error("Error al capturar la imagen");
-            }
+        }
+    });
 
-        },
-    );
 };
 
 const clearSteps = () => {
@@ -75,9 +71,10 @@ const clearSteps = () => {
         </div>
         <ul class="mt-4 flex flex-col gap-6" id="screenshots-container">
             <li v-for="(step, index) in steps" :key="index">
-                <p class="text-lg mb-4">
+                <p class="text-lg mb-2">
                     Paso {{ step.counter }}
                 </p>
+                <p class="mb-4">{{ step.description }}</p>
                 <img :src="step.screenshotUrl" class="w-full h-auto" />
             </li>
         </ul>

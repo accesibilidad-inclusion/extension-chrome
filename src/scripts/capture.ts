@@ -70,6 +70,8 @@ interactiveElements.forEach((el: Element) => {
   });
 
   el.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ action: "addStep" });
+
+    chrome.runtime.sendMessage({ action: 'pictos__take-screenshot' })
+
   });
 });

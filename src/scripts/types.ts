@@ -8,10 +8,7 @@ export interface PictosActionUrl {
 }
 
 export interface PictosActionScreenshot {
-    action: "pictos__screenshot-take" | "pictos__screenshot-get";
+    action: "pictos__take-screenshot" | "pictos__screenshot-get";
 }
 
 export type PictosAction = PictosActionAidAvailable | PictosActionUrl | PictosActionScreenshot;
-
-export function sendMessage(messages: PictosAction) {
-}
