@@ -1,7 +1,8 @@
 /// <reference types="chrome"/>
 
 import { checkAvailableAid } from "@/scripts/check-available-aids";
-import type { PictosAction, PictosActionUrl } from "@/scripts/types";
+import type { PictosAction, PictosActionUrl, PictosActionScreenshot } from "@/scripts/types";
+import { sendMessage } from "@/scripts/types";
 
 chrome.sidePanel
     .setPanelBehavior({ openPanelOnActionClick: false })
@@ -16,15 +17,12 @@ chrome.action.onClicked.addListener((tab) => {
         .then(() => {
             checkAvailableAid(tab.url)?.then((url) => {
                 if (url) {
-                    chrome.runtime.sendMessage({
+                    sendMessage({
                         action: "pictos__sidepanel-show-aid",
                         url: url,
                     });
                 } else {
-                    chrome.runtime.sendMessage({
-                        action: "pictos__sidepanel-empty",
-                        url: tab.url,
-                    });
+                    sendMessage({ action: "pictos__sidepanel-empty" });
                 }
             });
         });
@@ -40,7 +38,7 @@ const onAidAvailable = (sender: chrome.runtime.MessageSender) => {
         path: "./assets/img/con-apoyo-alt.png",
         tabId: sender.tab.id,
     });
-}
+};
 
 const onOverlayOpenSidepanel = (action: PictosActionUrl, sender: chrome.runtime.MessageSender) => {
     if (!sender.tab) {
@@ -55,22 +53,28 @@ const onOverlayOpenSidepanel = (action: PictosActionUrl, sender: chrome.runtime.
         })
         .then(() => {
             setTimeout(() => {
-                chrome.runtime.sendMessage({
+                sendMessage({
                     action: "pictos__sidepanel-show-aid",
                     url: action.url,
                 });
             }, 50);
         });
-}
+};
 
-const onTakeScreenshot = (action: PictosAction, sender: chrome.runtime.MessageSender) => {
+const onTakeScreenshot = async (action: PictosActionScreenshot, sender: chrome.runtime.MessageSender) => {
     if (!sender.tab) {
         console.error("tabId incorrecto!");
         return;
     }
 
     chrome.tabs.captureVisibleTab({ format: "png" }, (dataUrl) => {
-        chrome.runtime.sendMessage({ action: "addStep", dataUrl });
+        sendMessage({
+            action: "pictos__add-step",
+            data: {
+                dataUrl: dataUrl,
+                ...action.data
+            }
+        });
     });
 };
 
@@ -88,6 +92,6 @@ const addedListener = async (message: PictosAction, sender: chrome.runtime.Messa
         default:
             break;
     }
-}
+};
 
 chrome.runtime.onMessage.addListener(addedListener);

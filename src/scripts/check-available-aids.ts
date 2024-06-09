@@ -56,4 +56,3 @@ export function checkAvailableAid(url?: string) {
         return undefined;
     }
 }
-

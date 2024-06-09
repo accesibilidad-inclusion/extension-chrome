@@ -1,14 +1,49 @@
-export interface PictosActionAidAvailable {
-    action: "pictos__aid-available";
+export interface PictosActionScreenshot {
+    action: "pictos__take-screenshot";
+    data: {
+        x: number;
+        y: number;
+        imageWidth: number;
+        imageHeight: number;
+        elementWidth: number;
+        elementHeight: number;
+    };
+}
+
+export interface PictosActionSimple {
+    action: "pictos__aid-available" | "pictos__sidepanel-empty";
 }
 
 export interface PictosActionUrl {
-    action: "pictos__overlay-open-sidepanel" | "pictos__sidepanel-show-aid" | "pictos__sidepanel-empty";
+    action: "pictos__overlay-open-sidepanel" | "pictos__sidepanel-show-aid";
     url: string;
 }
 
-export interface PictosActionScreenshot {
-    action: "pictos__take-screenshot" | "pictos__screenshot-get";
+export interface PictosStep {
+    dataUrl: string;
+    x: number;
+    y: number;
+    imageWidth: number;
+    imageHeight: number;
+    elementWidth: number;
+    elementHeight: number;
 }
 
-export type PictosAction = PictosActionAidAvailable | PictosActionUrl | PictosActionScreenshot;
+export interface PictosActionStep {
+    action: "pictos__add-step";
+    data: PictosStep;
+}
+
+export type PictosAction =
+    | PictosActionSimple
+    | PictosActionUrl
+    | PictosActionScreenshot
+    | PictosActionStep;
+
+export function sendMessage(action: PictosAction) {
+    chrome.runtime.sendMessage(action);
+}
+
+export function addListener(callback: (request: PictosAction) => void) {
+    chrome.runtime.onMessage.addListener(callback);
+}

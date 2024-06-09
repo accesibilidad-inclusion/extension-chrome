@@ -1,8 +1,8 @@
 import { checkAvailableAid } from "@/scripts/check-available-aids";
+import { sendMessage } from "@/scripts/types";
 
 checkAvailableAid(window.location.href)?.then((url) => {
-    if (!url)
-        return;
+    if (!url) return;
 
     // Elemento contendor
     const overlay = document.createElement("div");
@@ -33,7 +33,7 @@ checkAvailableAid(window.location.href)?.then((url) => {
     overlayTextCallToAction.addEventListener("click", (e) => {
         e.preventDefault();
 
-        chrome.runtime.sendMessage({
+        sendMessage({
             action: "pictos__overlay-open-sidepanel",
             url: url,
         });
@@ -74,8 +74,5 @@ checkAvailableAid(window.location.href)?.then((url) => {
     }, 350);
 
     // Enviar mensaje de aid-available
-    chrome.runtime.sendMessage({
-        action: "pictos__aid-available",
-        url: url,
-    });
+    sendMessage({ action: "pictos__aid-available" });
 });

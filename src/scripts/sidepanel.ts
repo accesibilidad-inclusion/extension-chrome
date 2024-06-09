@@ -1,6 +1,6 @@
-import type { PictosActionUrl } from "./types";
+import type { PictosAction } from "./types";
 
-chrome.runtime.onMessage.addListener((message: PictosActionUrl) => {
+chrome.runtime.onMessage.addListener((message: PictosAction) => {
     switch (message.action) {
         case "pictos__sidepanel-show-aid": {
             const iframe = document.getElementById("pictos-frame") as HTMLIFrameElement;
@@ -20,7 +20,7 @@ chrome.runtime.onMessage.addListener((message: PictosActionUrl) => {
         case "pictos__sidepanel-empty": {
             const iframe = document.getElementById("pictos-frame") as HTMLIFrameElement;
             const iframeURL = new URL(chrome.i18n.getMessage("extensionNotFoundUrl"));
-            iframeURL.search = new URLSearchParams({ url: message.url }).toString();
+            iframeURL.search = new URLSearchParams({ url: "" }).toString();
             iframe.src = iframeURL.toString();
 
             break;
