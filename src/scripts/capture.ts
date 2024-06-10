@@ -1,20 +1,74 @@
-import { sendMessage } from "@/scripts/types";
+import { sendMessage, addListener } from "@/scripts/types";
 
-// Add styles using regular CSS
-const style = document.createElement("style");
-style.textContent = `
-  .pictos-popover {
-    position: absolute;
-    background: rgba(0, 0, 0, 0.75);
-    color: white;
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 12px;
-    z-index: 10000;
-    display: none;
-  }
-`;
-document.head.appendChild(style);
+let recording = false;
+
+addListener((request) => {
+    if (request.action === "pictos__update-recording-state") {
+        if (request.data.recording !== undefined) {
+            recording = request.data.recording;
+        }
+    }
+});
+
+const setupPopover = () => {
+    // Add styles using regular CSS
+    const style = document.createElement("style");
+
+    style.textContent = `
+    .pictos-popover {
+        position: absolute;
+        background: rgba(0, 0, 0, 0.75);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        z-index: 10000;
+        display: none;
+    }
+    `;
+
+    document.head.appendChild(style);
+
+    const interactiveElements = getInteractiveElements();
+
+    // Create the popover
+    const popover = document.createElement("div");
+    popover.classList.add("pictos-popover");
+    document.body.appendChild(popover);
+
+    interactiveElements.forEach((el: Element) => {
+        el.addEventListener("mouseover", () => {
+            if (!recording) return;
+            const content = `${el.tagName.toLowerCase()} ${el.textContent?.trim() || ""}`;
+            popover.textContent = content;
+            popover.style.display = "block";
+            const rect = el.getBoundingClientRect();
+            popover.style.left = `${rect.left + window.scrollX}px`;
+            popover.style.top = `${rect.bottom + window.scrollY + 5}px`;
+        });
+
+        el.addEventListener("mouseout", () => {
+            if (!recording) return;
+            popover.style.display = "none";
+        });
+
+        el.addEventListener("click", () => {
+            if (!recording) return;
+            const rect = el.getBoundingClientRect();
+            sendMessage({
+                action: "pictos__take-screenshot",
+                data: {
+                    x: rect.left + rect.width / 2,
+                    y: rect.top + rect.height / 2,
+                    elementWidth: rect.width,
+                    elementHeight: rect.height,
+                    imageWidth: window.innerWidth,
+                    imageHeight: window.innerHeight,
+                },
+            });
+        });
+    });
+};
 
 /**
  * Get interactive elements from the DOM
@@ -54,39 +108,4 @@ const getInteractiveElements = (): Element[] => {
     return Array.from(elements);
 };
 
-const interactiveElements = getInteractiveElements();
-
-// Create the popover
-const popover = document.createElement("div");
-popover.classList.add("pictos-popover");
-document.body.appendChild(popover);
-
-interactiveElements.forEach((el: Element) => {
-    el.addEventListener("mouseover", () => {
-        const content = `${el.tagName.toLowerCase()} ${el.textContent?.trim() || ""}`;
-        popover.textContent = content;
-        popover.style.display = "block";
-        const rect = el.getBoundingClientRect();
-        popover.style.left = `${rect.left + window.scrollX}px`;
-        popover.style.top = `${rect.bottom + window.scrollY + 5}px`;
-    });
-
-    el.addEventListener("mouseout", () => {
-        popover.style.display = "none";
-    });
-
-    el.addEventListener("click", () => {
-        const rect = el.getBoundingClientRect();
-        sendMessage({
-            action: "pictos__take-screenshot",
-            data: {
-                x: rect.left + rect.width / 2,
-                y: rect.top + rect.height / 2,
-                elementWidth: rect.width,
-                elementHeight: rect.height,
-                imageWidth: window.innerWidth,
-                imageHeight: window.innerHeight,
-            },
-        });
-    });
-});
+setupPopover();
