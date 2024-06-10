@@ -34,11 +34,19 @@ export interface PictosActionStep {
     data: PictosStep;
 }
 
+export interface PictosActionRecordingState {
+    action: "pictos__update-recording-state";
+    data: {
+        recording: boolean;
+    };
+}
+
 export type PictosAction =
     | PictosActionSimple
     | PictosActionUrl
     | PictosActionScreenshot
-    | PictosActionStep;
+    | PictosActionStep
+    | PictosActionRecordingState;
 
 export function sendMessage(action: PictosAction) {
     chrome.runtime.sendMessage(action);
