@@ -4,6 +4,38 @@ import { checkAvailableAid } from "@/scripts/check-available-aids";
 import type { PictosAction, PictosActionUrl, PictosActionScreenshot } from "@/scripts/types";
 import { sendMessage } from "@/scripts/types";
 
+import { reactive, watch } from "vue";
+
+export const state = reactive({
+    recording: false,
+});
+
+export const startRecording = () => {
+    state.recording = true;
+};
+
+export const stopRecording = () => {
+    state.recording = false;
+};
+
+watch(
+    () => state.recording,
+    async (recording) => {
+        console.log("recording state updated from service worker: ", recording);
+        const queryOptions = { active: true, lastFocusedWindow: true };
+        const [tab] = await chrome.tabs.query(queryOptions);
+        if (tab && tab.id) {
+            console.log("tab exists!, sending message to content script");
+            chrome.tabs.sendMessage(tab.id, {
+                action: "pictos__update-recording-state",
+                data: {
+                    recording: recording,
+                },
+            });
+        }
+    },
+);
+
 chrome.sidePanel
     .setPanelBehavior({ openPanelOnActionClick: false })
     .catch((error) => console.error(error));
@@ -61,7 +93,10 @@ const onOverlayOpenSidepanel = (action: PictosActionUrl, sender: chrome.runtime.
         });
 };
 
-const onTakeScreenshot = async (action: PictosActionScreenshot, sender: chrome.runtime.MessageSender) => {
+const onTakeScreenshot = async (
+    action: PictosActionScreenshot,
+    sender: chrome.runtime.MessageSender,
+) => {
     if (!sender.tab) {
         console.error("tabId incorrecto!");
         return;
@@ -72,8 +107,8 @@ const onTakeScreenshot = async (action: PictosActionScreenshot, sender: chrome.r
             action: "pictos__add-step",
             data: {
                 dataUrl: dataUrl,
-                ...action.data
-            }
+                ...action.data,
+            },
         });
     });
 };
