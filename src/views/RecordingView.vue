@@ -2,6 +2,7 @@
 import { ref, nextTick } from "vue";
 import type { PictosStep } from "@/scripts/types";
 import { addListener } from "@/scripts/types";
+import { state, startRecording, stopRecording } from "@/service-worker";
 
 interface CurrentPositionData {
     x: number;
@@ -25,22 +26,10 @@ interface Step {
     current?: CurrentPositionData;
 }
 
-const recording = ref<boolean>(false);
-
 const steps = ref<Step[]>([]);
 
-const startRecording = () => {
-    console.log("Start Recording!");
-    recording.value = true;
-};
-
-const stopRecording = () => {
-    console.log("Stop Recording!");
-    recording.value = false;
-};
-
 addListener((request) => {
-    if (request.action === "pictos__add-step" && recording.value) {
+    if (request.action === "pictos__add-step" && state.recording) {
         if (request.data.dataUrl) {
             addStep(request.data);
         } else {
@@ -134,14 +123,14 @@ const cutoutStyle = (data: CurrentPositionData) => {
         </ul>
         <div class="flex gap-4 justify-center">
             <button
-                v-if="!recording"
+                v-if="!state.recording"
                 @click="startRecording"
                 class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 mt-4"
             >
                 Iniciar grabación
             </button>
             <button
-                v-if="recording"
+                v-if="state.recording"
                 @click="stopRecording"
                 class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 mt-4"
             >
