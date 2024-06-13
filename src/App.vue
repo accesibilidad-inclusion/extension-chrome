@@ -1,3 +1,16 @@
+<script setup lang="ts">
+import { useRouter } from "vue-router";
+import { addListener } from "@/scripts/types";
+
+const router = useRouter();
+
+addListener((request) => {
+    if (request.action === "pictos__editor-route") {
+        router.push("/editor");
+    }
+});
+</script>
+
 <template>
     <div class="h-full">
         <main class="">

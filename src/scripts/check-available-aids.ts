@@ -1,6 +1,6 @@
 export function checkAvailableAid(url?: string) {
     if (!url || url.indexOf("http") !== 0 || !URL.canParse(url)) {
-        return;
+        return undefined;
     }
 
     const apiUrl = chrome.i18n.getMessage("extensionApiURL");

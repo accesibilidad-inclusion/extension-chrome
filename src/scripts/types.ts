@@ -1,17 +1,19 @@
+export interface PictosScreenshotData {
+    screenX: number;
+    screenY: number;
+    screenElementWidth: number;
+    screenElementHeight: number;
+    screenWidth: number;
+    screenHeight: number;
+}
+
 export interface PictosActionScreenshot {
     action: "pictos__take-screenshot";
-    data: {
-        x: number;
-        y: number;
-        imageWidth: number;
-        imageHeight: number;
-        elementWidth: number;
-        elementHeight: number;
-    };
+    data: PictosScreenshotData;
 }
 
 export interface PictosActionSimple {
-    action: "pictos__aid-available" | "pictos__sidepanel-empty";
+    action: "pictos__aid-available" | "pictos__sidepanel-empty" | "pictos__editor-route";
 }
 
 export interface PictosActionUrl {
@@ -21,12 +23,7 @@ export interface PictosActionUrl {
 
 export interface PictosStep {
     dataUrl: string;
-    x: number;
-    y: number;
-    imageWidth: number;
-    imageHeight: number;
-    elementWidth: number;
-    elementHeight: number;
+    screenshot: PictosScreenshotData;
 }
 
 export interface PictosActionStep {
@@ -41,12 +38,20 @@ export interface PictosActionRecordingState {
     };
 }
 
+export interface PictosActionEditor {
+    action: "pictos__open-editor";
+    data: {
+        tabId?: number;
+    };
+}
+
 export type PictosAction =
     | PictosActionSimple
     | PictosActionUrl
     | PictosActionScreenshot
     | PictosActionStep
-    | PictosActionRecordingState;
+    | PictosActionRecordingState
+    | PictosActionEditor;
 
 export function sendMessage(action: PictosAction) {
     chrome.runtime.sendMessage(action);

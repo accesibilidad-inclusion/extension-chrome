@@ -29,3 +29,6 @@ chrome.runtime.onMessage.addListener((message: PictosAction) => {
             break;
     }
 });
+
+// window.addEventListener("resize", function () {
+// });

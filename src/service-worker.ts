@@ -1,9 +1,13 @@
 /// <reference types="chrome"/>
 
 import { checkAvailableAid } from "@/scripts/check-available-aids";
-import type { PictosAction, PictosActionUrl, PictosActionScreenshot } from "@/scripts/types";
+import type {
+    PictosAction,
+    PictosActionUrl,
+    PictosActionScreenshot,
+    PictosActionEditor,
+} from "@/scripts/types";
 import { sendMessage } from "@/scripts/types";
-
 import { reactive, watch } from "vue";
 
 export const state = reactive({
@@ -17,6 +21,8 @@ export const startRecording = () => {
 export const stopRecording = () => {
     state.recording = false;
 };
+
+let editorTabId: number | undefined;
 
 watch(
     () => state.recording,
@@ -41,6 +47,8 @@ chrome.sidePanel
     .catch((error) => console.error(error));
 
 chrome.action.onClicked.addListener((tab) => {
+    if (editorTabId === tab.id) return;
+
     chrome.sidePanel
         .open({
             tabId: tab.id,
@@ -107,9 +115,18 @@ const onTakeScreenshot = async (
             action: "pictos__add-step",
             data: {
                 dataUrl: dataUrl,
-                ...action.data,
+                screenshot: action.data,
             },
         });
+    });
+};
+
+const onOpenEditor = (action: PictosActionEditor) => {
+    editorTabId = action.data.tabId;
+
+    chrome.sidePanel.setOptions({
+        tabId: action.data.tabId,
+        enabled: false,
     });
 };
 
@@ -124,9 +141,20 @@ const addedListener = async (message: PictosAction, sender: chrome.runtime.Messa
         case "pictos__take-screenshot":
             onTakeScreenshot(message, sender);
             break;
+        case "pictos__open-editor":
+            onOpenEditor(message);
+            break;
         default:
             break;
     }
 };
 
 chrome.runtime.onMessage.addListener(addedListener);
+
+chrome.tabs.onUpdated.addListener((tabId) => {
+    if (tabId === editorTabId) {
+        sendMessage({
+            action: "pictos__editor-route",
+        });
+    }
+});

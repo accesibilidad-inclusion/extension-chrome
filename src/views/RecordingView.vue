@@ -1,29 +1,22 @@
 <script setup lang="ts">
 import { ref, nextTick } from "vue";
-import type { PictosStep } from "@/scripts/types";
-import { addListener } from "@/scripts/types";
+import type { PictosStep, PictosScreenshotData } from "@/scripts/types";
+import { addListener, sendMessage } from "@/scripts/types";
 import { state, startRecording, stopRecording } from "@/service-worker";
 
-interface CurrentPositionData {
-    x: number;
-    y: number;
-    elementWidth: number;
-    elementHeight: number;
+interface FocusData {
+    scaledX: number;
+    scaledY: number;
+    scaledElementWidth: number;
+    scaledElementHeight: number;
 }
 
 interface Step {
     screenshotUrl: string;
     description: string;
     counter: number;
-    original: {
-        x: number;
-        y: number;
-        imageWidth: number;
-        imageHeight: number;
-        elementWidth: number;
-        elementHeight: number;
-    };
-    current?: CurrentPositionData;
+    screenshotData: PictosScreenshotData;
+    focusData?: FocusData;
 }
 
 const steps = ref<Step[]>([]);
@@ -43,14 +36,7 @@ const addStep = (data: PictosStep) => {
         screenshotUrl: data.dataUrl,
         counter: steps.value.length + 1,
         description: "Descripción del paso",
-        original: {
-            x: data.x,
-            y: data.y,
-            elementWidth: data.elementWidth,
-            elementHeight: data.elementHeight,
-            imageWidth: data.imageHeight,
-            imageHeight: data.imageHeight,
-        },
+        screenshotData: data.screenshot,
     };
 
     console.log(newStep);
@@ -78,20 +64,48 @@ const onImageLoad = (event: Event, index: number) => {
     const img = event.target as HTMLImageElement;
     const step = steps.value[index];
 
-    step.current = {
-        x: (step.original.x * img.clientWidth) / step.original.imageWidth,
-        y: (step.original.y * img.clientHeight) / step.original.imageHeight,
-        elementWidth: (step.original.elementWidth * img.clientWidth) / step.original.imageWidth,
-        elementHeight: (step.original.elementHeight * img.clientHeight) / step.original.imageHeight,
+    const naturalX =
+        (step.screenshotData.screenX * img.naturalWidth) / step.screenshotData.screenWidth;
+    const naturalY =
+        (step.screenshotData.screenY * img.naturalHeight) / step.screenshotData.screenHeight;
+
+    const elementNaturalWidth =
+        (step.screenshotData.screenElementWidth * img.naturalWidth) /
+        step.screenshotData.screenWidth;
+    const elementNaturalHeight =
+        (step.screenshotData.screenElementHeight * img.naturalHeight) /
+        step.screenshotData.screenHeight;
+
+    step.focusData = {
+        scaledX: (naturalX * img.width) / img.naturalWidth,
+        scaledY: (naturalY * img.height) / img.naturalHeight,
+        scaledElementWidth: (elementNaturalWidth * img.width) / img.naturalWidth,
+        scaledElementHeight: (elementNaturalHeight * img.height) / img.naturalHeight,
+    };
+
+    console.log(`Current Img: ${img.width}, ${img.height}`);
+    console.log(`Real Img: ${img.naturalWidth}, ${img.naturalHeight}`);
+    console.log(`Screen: ${step.screenshotData.screenWidth}, ${step.screenshotData.screenHeight}`);
+    console.log(step.screenshotData);
+};
+
+const cutoutStyle = (data: FocusData) => {
+    const radius = Math.max(data.scaledElementWidth, data.scaledElementHeight) / 2 + 0.5;
+    return {
+        "mask-image": `radial-gradient(circle at ${data.scaledX}px ${data.scaledY}px, transparent ${radius}px, black ${radius}px)`,
+        "-webkit-mask-image": `radial-gradient(circle at ${data.scaledX}px ${data.scaledY}px, transparent ${radius}px, black ${radius}px)`,
     };
 };
 
-const cutoutStyle = (data: CurrentPositionData) => {
-    const radius = Math.max(data.elementWidth, data.elementHeight) / 2 + 0.5;
-    return {
-        "mask-image": `radial-gradient(circle at ${data.x - 15}px ${data.y}px, transparent ${radius}px, black ${radius}px)`,
-        "-webkit-mask-image": `radial-gradient(circle at ${data.x - 15}px ${data.y}px, transparent ${radius}px, black ${radius}px)`,
-    };
+const openEditor = () => {
+    chrome.tabs.create({ url: "index.html" }, (tab) => {
+        sendMessage({
+            action: "pictos__open-editor",
+            data: {
+                tabId: tab.id,
+            },
+        });
+    });
 };
 </script>
 
@@ -114,9 +128,9 @@ const cutoutStyle = (data: CurrentPositionData) => {
                         @load="onImageLoad($event, index)"
                     />
                     <div
-                        v-if="step.current"
+                        v-if="step.focusData"
                         class="absolute z-10 top-0 left-0 w-full h-full bg-black bg-opacity-50"
-                        :style="cutoutStyle(step.current)"
+                        :style="cutoutStyle(step.focusData)"
                     ></div>
                 </div>
             </li>
@@ -135,6 +149,12 @@ const cutoutStyle = (data: CurrentPositionData) => {
                 class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 mt-4"
             >
                 Detener grabación
+            </button>
+            <button
+                @click="openEditor"
+                class="bg-pink-600 text-white py-2 px-4 rounded hover:bg-pink-900 mt-4"
+            >
+                Editar
             </button>
             <button
                 @click="clearSteps"
