@@ -5,6 +5,7 @@ export interface PictosScreenshotData {
     screenElementHeight: number;
     screenWidth: number;
     screenHeight: number;
+    description: string;
 }
 
 export interface PictosActionScreenshot {

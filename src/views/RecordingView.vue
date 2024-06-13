@@ -13,7 +13,6 @@ interface FocusData {
 
 interface Step {
     screenshotUrl: string;
-    description: string;
     counter: number;
     screenshotData: PictosScreenshotData;
     focusData?: FocusData;
@@ -35,7 +34,6 @@ const addStep = (data: PictosStep) => {
     const newStep = {
         screenshotUrl: data.dataUrl,
         counter: steps.value.length + 1,
-        description: "Descripción del paso",
         screenshotData: data.screenshot,
     };
 
@@ -119,12 +117,12 @@ const openEditor = () => {
         <ul class="mt-4 flex flex-col gap-6" id="screenshots-container">
             <li v-for="(step, index) in steps" :key="index">
                 <p class="text-lg mb-2">Paso {{ step.counter }}</p>
-                <p class="mb-4">{{ step.description }}</p>
+                <p class="mb-4">{{ step.screenshotData.description }}</p>
                 <div class="relative">
                     <img
                         :src="step.screenshotUrl"
                         class="w-full h-auto"
-                        :alt="step.description"
+                        :alt="step.screenshotData.description"
                         @load="onImageLoad($event, index)"
                     />
                     <div
