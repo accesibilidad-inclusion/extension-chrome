@@ -19,7 +19,7 @@ addListener((request) => {
             </div>
         </main>
         <div
-            class="fixed bottom-0 left-0 w-full bg-white shadow-lg p-4 flex justify-center items-center space-x-4 h-[70px]"
+            class="fixed z-[20] bottom-0 left-0 w-full bg-white shadow-lg p-4 flex justify-center items-center space-x-4 h-[70px]"
         >
             <router-link
                 v-if="$route.path === '/'"
