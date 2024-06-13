@@ -42,7 +42,7 @@ const addStep = (data: PictosStep) => {
     const newStep = {
         screenshotUrl: data.dataUrl,
         counter: steps.value.length + 1,
-        description: "Descripción del paso",
+        description: data.description,
         original: {
             x: data.x,
             y: data.y,

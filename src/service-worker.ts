@@ -106,8 +106,8 @@ const onTakeScreenshot = async (
         sendMessage({
             action: "pictos__add-step",
             data: {
-                dataUrl: dataUrl,
                 ...action.data,
+                dataUrl: dataUrl,
             },
         });
     });

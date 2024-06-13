@@ -1,13 +1,6 @@
 export interface PictosActionScreenshot {
     action: "pictos__take-screenshot";
-    data: {
-        x: number;
-        y: number;
-        imageWidth: number;
-        imageHeight: number;
-        elementWidth: number;
-        elementHeight: number;
-    };
+    data: PictosStep;
 }
 
 export interface PictosActionSimple {
@@ -27,6 +20,7 @@ export interface PictosStep {
     imageHeight: number;
     elementWidth: number;
     elementHeight: number;
+    description: string;
 }
 
 export interface PictosActionStep {
