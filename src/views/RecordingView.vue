@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick } from "vue";
+import { watch, onMounted, ref, nextTick } from "vue";
 import type { PictosStep, PictosScreenshotData } from "@/scripts/types";
 import { addListener, sendMessage } from "@/scripts/types";
 import { state, startRecording, stopRecording } from "@/service-worker";
@@ -19,6 +19,19 @@ interface Step {
 }
 
 const steps = ref<Step[]>([]);
+
+const saveStepsToLocalStorage = () => {
+    localStorage.setItem("pictos_steps", JSON.stringify(steps.value));
+};
+
+onMounted(() => {
+    const savedSteps = localStorage.getItem("pictos_steps");
+    if (savedSteps) {
+        steps.value = JSON.parse(savedSteps);
+    }
+});
+
+watch(steps, saveStepsToLocalStorage, { deep: true });
 
 addListener((request) => {
     if (request.action === "pictos__add-step" && state.recording) {
@@ -55,6 +68,7 @@ const addStep = (data: PictosStep) => {
 
 const clearSteps = () => {
     steps.value = [];
+    localStorage.removeItem("pictos_steps");
     stopRecording();
 };
 
@@ -133,30 +147,30 @@ const openEditor = () => {
                 </div>
             </li>
         </ul>
-        <div class="flex gap-4 justify-center">
+        <div class="flex gap-2 justify-center mt-5">
             <button
                 v-if="!state.recording"
                 @click="startRecording"
-                class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 mt-4"
+                class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
             >
                 Iniciar grabación
             </button>
             <button
                 v-if="state.recording"
                 @click="stopRecording"
-                class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 mt-4"
+                class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
             >
                 Detener grabación
             </button>
             <button
                 @click="openEditor"
-                class="bg-pink-600 text-white py-2 px-4 rounded hover:bg-pink-900 mt-4"
+                class="bg-pink-600 text-white py-2 px-4 rounded hover:bg-pink-900"
             >
                 Editar
             </button>
             <button
                 @click="clearSteps"
-                class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 mt-4"
+                class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
             >
                 Limpiar pasos
             </button>
