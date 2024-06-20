@@ -1,22 +1,8 @@
 <script setup lang="ts">
 import { ref, nextTick } from "vue";
-import type { PictosStep, PictosScreenshotData } from "@/scripts/types";
+import type { PictosStep, FocusData, Step } from "@/scripts/types";
 import { addListener, sendMessage } from "@/scripts/types";
 import { state, startRecording, stopRecording } from "@/service-worker";
-
-interface FocusData {
-    scaledX: number;
-    scaledY: number;
-    scaledElementWidth: number;
-    scaledElementHeight: number;
-}
-
-interface Step {
-    screenshotUrl: string;
-    counter: number;
-    screenshotData: PictosScreenshotData;
-    focusData?: FocusData;
-}
 
 const steps = ref<Step[]>([]);
 
@@ -101,6 +87,7 @@ const openEditor = () => {
             action: "pictos__open-editor",
             data: {
                 tabId: tab.id,
+                steps: steps.value,
             },
         });
     });

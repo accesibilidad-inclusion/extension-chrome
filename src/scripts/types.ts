@@ -14,7 +14,11 @@ export interface PictosActionScreenshot {
 }
 
 export interface PictosActionSimple {
-    action: "pictos__aid-available" | "pictos__sidepanel-empty" | "pictos__editor-route";
+    action:
+        | "pictos__aid-available"
+        | "pictos__sidepanel-empty"
+        | "pictos__editor-route"
+        | "pictos__get-editor-data";
 }
 
 export interface PictosActionUrl {
@@ -39,10 +43,25 @@ export interface PictosActionRecordingState {
     };
 }
 
+export interface FocusData {
+    scaledX: number;
+    scaledY: number;
+    scaledElementWidth: number;
+    scaledElementHeight: number;
+}
+
+export interface Step {
+    screenshotUrl: string;
+    counter: number;
+    screenshotData: PictosScreenshotData;
+    focusData?: FocusData;
+}
+
 export interface PictosActionEditor {
     action: "pictos__open-editor";
     data: {
         tabId?: number;
+        steps: Step[];
     };
 }
 
@@ -54,8 +73,8 @@ export type PictosAction =
     | PictosActionRecordingState
     | PictosActionEditor;
 
-export function sendMessage(action: PictosAction) {
-    chrome.runtime.sendMessage(action);
+export async function sendMessage(action: PictosAction) {
+    return chrome.runtime.sendMessage(action);
 }
 
 export function addListener(callback: (request: PictosAction) => void) {

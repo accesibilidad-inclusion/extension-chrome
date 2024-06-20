@@ -6,6 +6,7 @@ import type {
     PictosActionUrl,
     PictosActionScreenshot,
     PictosActionEditor,
+    Step,
 } from "@/scripts/types";
 import { sendMessage } from "@/scripts/types";
 import { reactive, watch } from "vue";
@@ -23,6 +24,7 @@ export const stopRecording = () => {
 };
 
 let editorTabId: number | undefined;
+let steps: Step[];
 
 watch(
     () => state.recording,
@@ -123,6 +125,7 @@ const onTakeScreenshot = async (
 
 const onOpenEditor = (action: PictosActionEditor) => {
     editorTabId = action.data.tabId;
+    steps = action.data.steps;
 
     chrome.sidePanel.setOptions({
         tabId: action.data.tabId,
@@ -130,7 +133,11 @@ const onOpenEditor = (action: PictosActionEditor) => {
     });
 };
 
-const addedListener = async (message: PictosAction, sender: chrome.runtime.MessageSender) => {
+const addedListener = async (
+    message: PictosAction,
+    sender: chrome.runtime.MessageSender,
+    sendResponse: (response: any) => void,
+) => {
     switch (message.action) {
         case "pictos__aid-available":
             onAidAvailable(sender);
@@ -143,6 +150,11 @@ const addedListener = async (message: PictosAction, sender: chrome.runtime.Messa
             break;
         case "pictos__open-editor":
             onOpenEditor(message);
+            break;
+        case "pictos__get-editor-data":
+            sendResponse({
+                steps: steps,
+            });
             break;
         default:
             break;
@@ -158,3 +170,4 @@ chrome.tabs.onUpdated.addListener((tabId) => {
         });
     }
 });
+
