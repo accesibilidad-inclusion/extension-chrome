@@ -151,11 +151,6 @@ const addedListener = async (
         case "pictos__open-editor":
             onOpenEditor(message);
             break;
-        case "pictos__get-editor-data":
-            sendResponse({
-                steps: steps,
-            });
-            break;
         default:
             break;
     }
@@ -170,4 +165,3 @@ chrome.tabs.onUpdated.addListener((tabId) => {
         });
     }
 });
-

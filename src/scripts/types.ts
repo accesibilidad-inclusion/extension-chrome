@@ -14,11 +14,7 @@ export interface PictosActionScreenshot {
 }
 
 export interface PictosActionSimple {
-    action:
-        | "pictos__aid-available"
-        | "pictos__sidepanel-empty"
-        | "pictos__editor-route"
-        | "pictos__get-editor-data";
+    action: "pictos__aid-available" | "pictos__sidepanel-empty" | "pictos__editor-route";
 }
 
 export interface PictosActionUrl {
