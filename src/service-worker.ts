@@ -6,7 +6,7 @@ import type {
     PictosActionUrl,
     PictosActionScreenshot,
     PictosActionEditor,
-    Step,
+    Guide,
 } from "@/scripts/types";
 import { sendMessage } from "@/scripts/types";
 import { reactive, watch } from "vue";
@@ -24,7 +24,7 @@ export const stopRecording = () => {
 };
 
 let editorTabId: number | undefined;
-let steps: Step[];
+let guide: Guide;
 
 watch(
     () => state.recording,
@@ -125,7 +125,7 @@ const onTakeScreenshot = async (
 
 const onOpenEditor = (action: PictosActionEditor) => {
     editorTabId = action.data.tabId;
-    steps = action.data.steps;
+    guide = action.data.guide;
 
     chrome.sidePanel.setOptions({
         tabId: action.data.tabId,

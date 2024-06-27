@@ -1,23 +1,26 @@
 <script setup lang="ts">
 import { watch, onMounted, ref, nextTick } from "vue";
-import type { PictosStep, FocusData, Step } from "@/scripts/types";
+import type { PictosStep, FocusData, Step, Guide } from "@/scripts/types";
 import { addListener, sendMessage } from "@/scripts/types";
 import { state, startRecording, stopRecording } from "@/service-worker";
 
-const steps = ref<Step[]>([]);
+const guide = ref<Guide>({
+    title: "Mi Guía",
+    steps: [],
+});
 
-const saveStepsToLocalStorage = () => {
-    localStorage.setItem("pictos_steps", JSON.stringify(steps.value));
+const saveGuideToLocalStorage = () => {
+    localStorage.setItem("pictos_guide", JSON.stringify(guide.value));
 };
 
 onMounted(() => {
-    const savedSteps = localStorage.getItem("pictos_steps");
-    if (savedSteps) {
-        steps.value = JSON.parse(savedSteps);
+    const savedGuide = localStorage.getItem("pictos_guide");
+    if (savedGuide) {
+        guide.value = JSON.parse(savedGuide);
     }
 });
 
-watch(steps, saveStepsToLocalStorage, { deep: true });
+watch(guide, saveGuideToLocalStorage, { deep: true });
 
 addListener((request) => {
     if (request.action === "pictos__add-step" && state.recording) {
@@ -30,15 +33,15 @@ addListener((request) => {
 });
 
 const addStep = (data: PictosStep) => {
-    const newStep = {
+    const newStep: Step = {
         screenshotUrl: data.dataUrl,
-        counter: steps.value.length + 1,
+        counter: guide.value.steps.length + 1,
         screenshotData: data.screenshot,
     };
 
     console.log(newStep);
 
-    steps.value.push(newStep);
+    guide.value.steps.push(newStep);
 
     // scroll to the bottom with a smooth animation
     nextTick(() => {
@@ -53,14 +56,15 @@ const addStep = (data: PictosStep) => {
 };
 
 const clearSteps = () => {
-    steps.value = [];
-    localStorage.removeItem("pictos_steps");
+    guide.value.steps = [];
+    guide.value.title = "Mi Guía";
+    localStorage.removeItem("pictos_guide");
     stopRecording();
 };
 
 const onImageLoad = (event: Event, index: number) => {
     const img = event.target as HTMLImageElement;
-    const step = steps.value[index];
+    const step = guide.value.steps[index];
 
     const naturalX =
         (step.screenshotData.screenX * img.naturalWidth) / step.screenshotData.screenWidth;
@@ -101,7 +105,7 @@ const openEditor = () => {
             action: "pictos__open-editor",
             data: {
                 tabId: tab.id,
-                steps: steps.value,
+                guide: guide.value,
             },
         });
     });
@@ -112,53 +116,34 @@ const openEditor = () => {
     <div class="p-4 mt-4 text-center">
         <div class="flex flex-col">
             <h4 class="text-xl font-medium">
-                {{ steps.length }} {{ steps.length === 1 ? "paso" : "pasos" }}
+                {{ guide.steps.length }} {{ guide.steps.length === 1 ? "paso" : "pasos" }}
             </h4>
         </div>
         <ul class="mt-4 flex flex-col gap-6" id="screenshots-container">
-            <li v-for="(step, index) in steps" :key="index">
+            <li v-for="(step, index) in guide.steps" :key="index">
                 <p class="text-lg mb-2">Paso {{ step.counter }}</p>
                 <p class="mb-4">{{ step.screenshotData.description }}</p>
                 <div class="relative">
-                    <img
-                        :src="step.screenshotUrl"
-                        class="w-full h-auto"
-                        :alt="step.screenshotData.description"
-                        @load="onImageLoad($event, index)"
-                    />
-                    <div
-                        v-if="step.focusData"
-                        class="absolute z-10 top-0 left-0 w-full h-full bg-black bg-opacity-50"
-                        :style="cutoutStyle(step.focusData)"
-                    ></div>
+                    <img :src="step.screenshotUrl" class="w-full h-auto" :alt="step.screenshotData.description"
+                        @load="onImageLoad($event, index)" />
+                    <div v-if="step.focusData" class="absolute z-10 top-0 left-0 w-full h-full bg-black bg-opacity-50"
+                        :style="cutoutStyle(step.focusData)"></div>
                 </div>
             </li>
         </ul>
         <div class="flex gap-2 justify-center mt-5">
-            <button
-                v-if="!state.recording"
-                @click="startRecording"
-                class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
-            >
+            <button v-if="!state.recording" @click="startRecording"
+                class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
                 Iniciar grabación
             </button>
-            <button
-                v-if="state.recording"
-                @click="stopRecording"
-                class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
-            >
+            <button v-if="state.recording" @click="stopRecording"
+                class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600">
                 Detener grabación
             </button>
-            <button
-                @click="openEditor"
-                class="bg-pink-600 text-white py-2 px-4 rounded hover:bg-pink-900"
-            >
+            <button @click="openEditor" class="bg-pink-600 text-white py-2 px-4 rounded hover:bg-pink-900">
                 Editar
             </button>
-            <button
-                @click="clearSteps"
-                class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-            >
+            <button @click="clearSteps" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
                 Limpiar pasos
             </button>
         </div>

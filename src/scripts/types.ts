@@ -1,3 +1,8 @@
+export interface Guide {
+    title: string;
+    steps: Step[];
+}
+
 export interface PictosScreenshotData {
     screenX: number;
     screenY: number;
@@ -57,7 +62,7 @@ export interface PictosActionEditor {
     action: "pictos__open-editor";
     data: {
         tabId?: number;
-        steps: Step[];
+        guide: Guide;
     };
 }
 
