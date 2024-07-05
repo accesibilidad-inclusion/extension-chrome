@@ -37,10 +37,11 @@ const addStep = (data: PictosStep) => {
         screenshotUrl: data.dataUrl,
         counter: guide.value.steps.length + 1,
         screenshotData: data.screenshotData,
-        description: data.description,
+        title: data.title,
+        description: "Descripción del paso", // Default description
         elementType: data.elementType,
         focusData: {
-            scaledX: 0, // You'll need to calculate these values
+            scaledX: 0,
             scaledY: 0,
             scaledElementWidth: 0,
             scaledElementHeight: 0,
@@ -123,13 +124,14 @@ const openEditor = () => {
 <template>
     <div class="p-4 mt-4 text-center">
         <div class="flex flex-col">
-            <h4 class="text-xl font-medium">
+            <h4 class="text-2xl font-medium">
                 {{ guide.steps.length }} {{ guide.steps.length === 1 ? "paso" : "pasos" }}
             </h4>
         </div>
         <ul class="mt-4 flex flex-col gap-6" id="screenshots-container">
             <li v-for="(step, index) in guide.steps" :key="index">
-                <p class="text-lg mb-2">Paso {{ step.counter }}</p>
+                <p class="text-xl mb-2">Paso {{ step.counter }}</p>
+                <p class="text-lg font-semibold mb-2">{{ step.title }}</p>
                 <p class="mb-4">{{ step.description }}</p>
                 <div class="relative">
                     <img

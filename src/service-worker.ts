@@ -118,7 +118,7 @@ const onTakeScreenshot = async (
             data: {
                 dataUrl: dataUrl,
                 screenshotData: action.data.screenshotData,
-                description: action.data.description,
+                title: action.data.title,
                 elementType: action.data.elementType,
             },
         });

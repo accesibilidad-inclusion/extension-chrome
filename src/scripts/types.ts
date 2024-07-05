@@ -4,6 +4,7 @@ export interface Guide {
 }
 
 export interface Step {
+    title: string;
     description: string;
     elementType: string; // e.g., 'button', 'div', 'a'
     screenshotUrl: string;
@@ -32,7 +33,7 @@ export interface PictosActionScreenshot {
     action: "pictos__take-screenshot";
     data: {
         screenshotData: PictosScreenshotData;
-        description: string;
+        title: string;
         elementType: string;
     };
 }
@@ -49,7 +50,7 @@ export interface PictosActionUrl {
 export interface PictosStep {
     dataUrl: string;
     screenshotData: PictosScreenshotData;
-    description: string;
+    title: string;
     elementType: string;
 }
 

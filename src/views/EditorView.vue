@@ -13,16 +13,23 @@ const saveGuideToLocalStorage = () => {
     localStorage.setItem("pictos_guide", JSON.stringify(guide.value));
 };
 
+const editGuideTitle = (newTitle: string) => {
+    guide.value.title = newTitle;
+    saveGuideToLocalStorage();
+};
+
+const editStepTitle = (index: number, newTitle: string) => {
+    if (guide.value.steps[index]) {
+        guide.value.steps[index].title = newTitle;
+        saveGuideToLocalStorage();
+    }
+};
+
 const editDescription = (index: number, newDescription: string) => {
     if (guide.value.steps[index]) {
         guide.value.steps[index].description = newDescription;
         saveGuideToLocalStorage();
     }
-};
-
-const editTitle = (newTitle: string) => {
-    guide.value.title = newTitle;
-    saveGuideToLocalStorage();
 };
 
 onMounted(() => {
@@ -53,7 +60,7 @@ watch(guide, saveGuideToLocalStorage, { deep: true });
             <input
                 v-if="isEditing"
                 v-model="guide.title"
-                @blur="editTitle(guide.title)"
+                @blur="editGuideTitle(guide.title)"
                 class="text-2xl font-bold p-2 border rounded w-full"
             />
             <h2 v-else class="text-2xl font-bold">{{ guide.title }}</h2>
@@ -61,22 +68,31 @@ watch(guide, saveGuideToLocalStorage, { deep: true });
 
         <ul class="mt-4 flex flex-col gap-8" id="screenshots-container">
             <li v-for="(step, index) in guide.steps" :key="index">
-                <div class="flex items-center gap-4 mb-5">
+                <div class="flex items-center gap-4 mb-2">
                     <div class="w-9 h-9 rounded-full bg-gray-200 flex justify-center items-center">
                         <span class="text-lg">{{ step.counter }}</span>
                     </div>
                     <input
                         v-if="isEditing"
-                        v-model="step.description"
-                        @blur="editDescription(index, step.description)"
+                        v-model="step.title"
+                        @blur="editStepTitle(index, step.title)"
                         class="text-lg font-medium p-1 border rounded flex-grow"
                     />
-                    <p v-else class="text-lg font-medium">{{ step.description }}</p>
+                    <p v-else class="text-lg font-medium">{{ step.title }}</p>
+                </div>
+                <div class="mb-5">
+                    <input
+                        v-if="isEditing"
+                        v-model="step.description"
+                        @blur="editDescription(index, step.description)"
+                        class="text-base p-1 border rounded w-full"
+                    />
+                    <p v-else class="text-base">{{ step.description }}</p>
                 </div>
                 <img
                     :src="step.screenshotUrl"
                     class="w-full h-auto rounded border"
-                    :alt="step.description"
+                    :alt="step.title"
                 />
             </li>
         </ul>

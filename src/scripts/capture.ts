@@ -15,7 +15,7 @@ addListener((request) => {
  * @param {Element} el - The element to create a description for
  * @returns {string} The description of the element
  */
-const createDescription = (el: Element): string => {
+const createTitle = (el: Element): string => {
     const tagName = el.tagName.toLowerCase();
     const textContent = el.textContent?.trim() || "";
     let description = "";
@@ -94,7 +94,7 @@ const setupPopover = () => {
     interactiveElements.forEach((el: Element) => {
         el.addEventListener("mouseover", () => {
             if (!recording) return;
-            const content = createDescription(el);
+            const content = createTitle(el);
             popover.textContent = content;
             popover.style.display = "block";
             const rect = el.getBoundingClientRect();
@@ -110,7 +110,7 @@ const setupPopover = () => {
         el.addEventListener("click", () => {
             if (!recording) return;
             const rect = el.getBoundingClientRect();
-            const actualDescription = createDescription(el);
+            const actualTitle = createTitle(el);
             sendMessage({
                 action: "pictos__take-screenshot",
                 data: {
@@ -122,7 +122,7 @@ const setupPopover = () => {
                         screenWidth: window.innerWidth,
                         screenHeight: window.innerHeight,
                     },
-                    description: actualDescription,
+                    title: actualTitle,
                     elementType: el.tagName.toLowerCase(),
                 },
             });
