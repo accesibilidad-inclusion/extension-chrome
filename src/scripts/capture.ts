@@ -114,13 +114,16 @@ const setupPopover = () => {
             sendMessage({
                 action: "pictos__take-screenshot",
                 data: {
-                    screenX: rect.left + (rect.width / 2),
-                    screenY: rect.top + (rect.height / 2),
-                    screenElementWidth: rect.width,
-                    screenElementHeight: rect.height,
-                    screenWidth: window.innerWidth,
-                    screenHeight: window.innerHeight,
+                    screenshotData: {
+                        screenX: rect.left + rect.width / 2,
+                        screenY: rect.top + rect.height / 2,
+                        screenElementWidth: rect.width,
+                        screenElementHeight: rect.height,
+                        screenWidth: window.innerWidth,
+                        screenHeight: window.innerHeight,
+                    },
                     description: actualDescription,
+                    elementType: el.tagName.toLowerCase(),
                 },
             });
         });

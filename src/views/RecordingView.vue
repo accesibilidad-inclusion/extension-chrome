@@ -36,7 +36,15 @@ const addStep = (data: PictosStep) => {
     const newStep: Step = {
         screenshotUrl: data.dataUrl,
         counter: guide.value.steps.length + 1,
-        screenshotData: data.screenshot,
+        screenshotData: data.screenshotData,
+        description: data.description,
+        elementType: data.elementType,
+        focusData: {
+            scaledX: 0, // You'll need to calculate these values
+            scaledY: 0,
+            scaledElementWidth: 0,
+            scaledElementHeight: 0,
+        },
     };
 
     console.log(newStep);
@@ -122,28 +130,47 @@ const openEditor = () => {
         <ul class="mt-4 flex flex-col gap-6" id="screenshots-container">
             <li v-for="(step, index) in guide.steps" :key="index">
                 <p class="text-lg mb-2">Paso {{ step.counter }}</p>
-                <p class="mb-4">{{ step.screenshotData.description }}</p>
+                <p class="mb-4">{{ step.description }}</p>
                 <div class="relative">
-                    <img :src="step.screenshotUrl" class="w-full h-auto" :alt="step.screenshotData.description"
-                        @load="onImageLoad($event, index)" />
-                    <div v-if="step.focusData" class="absolute z-10 top-0 left-0 w-full h-full bg-black bg-opacity-50"
-                        :style="cutoutStyle(step.focusData)"></div>
+                    <img
+                        :src="step.screenshotUrl"
+                        class="w-full h-auto"
+                        :alt="step.description"
+                        @load="onImageLoad($event, index)"
+                    />
+                    <div
+                        v-if="step.focusData"
+                        class="absolute z-10 top-0 left-0 w-full h-full bg-black bg-opacity-50"
+                        :style="cutoutStyle(step.focusData)"
+                    ></div>
                 </div>
             </li>
         </ul>
         <div class="flex gap-2 justify-center mt-5">
-            <button v-if="!state.recording" @click="startRecording"
-                class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
+            <button
+                v-if="!state.recording"
+                @click="startRecording"
+                class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
+            >
                 Iniciar grabación
             </button>
-            <button v-if="state.recording" @click="stopRecording"
-                class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600">
+            <button
+                v-if="state.recording"
+                @click="stopRecording"
+                class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
+            >
                 Detener grabación
             </button>
-            <button @click="openEditor" class="bg-pink-600 text-white py-2 px-4 rounded hover:bg-pink-900">
+            <button
+                @click="openEditor"
+                class="bg-pink-600 text-white py-2 px-4 rounded hover:bg-pink-900"
+            >
                 Editar
             </button>
-            <button @click="clearSteps" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+            <button
+                @click="clearSteps"
+                class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+            >
                 Limpiar pasos
             </button>
         </div>

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import type { Guide, Step } from "@/scripts/types";
+import type { Guide } from "@/scripts/types";
 
 const guide = ref<Guide>({
     title: "Mi Guía",
     steps: [],
 });
+
 const isEditing = ref(false);
 
 const saveGuideToLocalStorage = () => {
@@ -14,7 +15,7 @@ const saveGuideToLocalStorage = () => {
 
 const editDescription = (index: number, newDescription: string) => {
     if (guide.value.steps[index]) {
-        guide.value.steps[index].screenshotData.description = newDescription;
+        guide.value.steps[index].description = newDescription;
         saveGuideToLocalStorage();
     }
 };
@@ -38,16 +39,23 @@ watch(guide, saveGuideToLocalStorage, { deep: true });
     <div class="max-w-2xl mx-auto my-12">
         <div class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-semibold">Editor de pasos</h1>
-            <button @click="isEditing = !isEditing" class="px-5 py-2 text-white rounded flex items-center gap-2"
-                :class="[isEditing ? 'bg-red-500' : 'bg-blue-500']">
+            <button
+                @click="isEditing = !isEditing"
+                class="px-5 py-2 text-white rounded flex items-center gap-2"
+                :class="[isEditing ? 'bg-red-500' : 'bg-blue-500']"
+            >
                 <img src="/assets/edit.svg" alt="edit-icon" class="w-4 h-4" />
                 <span>{{ isEditing ? "Dejar de editar" : "Editar" }}</span>
             </button>
         </div>
 
         <div class="mb-6">
-            <input v-if="isEditing" v-model="guide.title" @blur="editTitle(guide.title)"
-                class="text-2xl font-bold p-2 border rounded w-full" />
+            <input
+                v-if="isEditing"
+                v-model="guide.title"
+                @blur="editTitle(guide.title)"
+                class="text-2xl font-bold p-2 border rounded w-full"
+            />
             <h2 v-else class="text-2xl font-bold">{{ guide.title }}</h2>
         </div>
 
@@ -57,13 +65,19 @@ watch(guide, saveGuideToLocalStorage, { deep: true });
                     <div class="w-9 h-9 rounded-full bg-gray-200 flex justify-center items-center">
                         <span class="text-lg">{{ step.counter }}</span>
                     </div>
-                    <input v-if="isEditing" v-model="step.screenshotData.description"
-                        @blur="editDescription(index, step.screenshotData.description)"
-                        class="text-lg font-medium p-1 border rounded flex-grow" />
-                    <p v-else class="text-lg font-medium">{{ step.screenshotData.description }}</p>
+                    <input
+                        v-if="isEditing"
+                        v-model="step.description"
+                        @blur="editDescription(index, step.description)"
+                        class="text-lg font-medium p-1 border rounded flex-grow"
+                    />
+                    <p v-else class="text-lg font-medium">{{ step.description }}</p>
                 </div>
-                <img :src="step.screenshotUrl" class="w-full h-auto rounded border"
-                    :alt="step.screenshotData.description" />
+                <img
+                    :src="step.screenshotUrl"
+                    class="w-full h-auto rounded border"
+                    :alt="step.description"
+                />
             </li>
         </ul>
     </div>

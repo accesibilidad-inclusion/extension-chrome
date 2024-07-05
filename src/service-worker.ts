@@ -117,7 +117,9 @@ const onTakeScreenshot = async (
             action: "pictos__add-step",
             data: {
                 dataUrl: dataUrl,
-                screenshot: action.data,
+                screenshotData: action.data.screenshotData,
+                description: action.data.description,
+                elementType: action.data.elementType,
             },
         });
     });

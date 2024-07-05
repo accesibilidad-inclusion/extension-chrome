@@ -3,6 +3,15 @@ export interface Guide {
     steps: Step[];
 }
 
+export interface Step {
+    description: string;
+    elementType: string; // e.g., 'button', 'div', 'a'
+    screenshotUrl: string;
+    counter: number;
+    screenshotData: PictosScreenshotData;
+    focusData: FocusData;
+}
+
 export interface PictosScreenshotData {
     screenX: number;
     screenY: number;
@@ -10,12 +19,22 @@ export interface PictosScreenshotData {
     screenElementHeight: number;
     screenWidth: number;
     screenHeight: number;
-    description: string;
+}
+
+export interface FocusData {
+    scaledX: number;
+    scaledY: number;
+    scaledElementWidth: number;
+    scaledElementHeight: number;
 }
 
 export interface PictosActionScreenshot {
     action: "pictos__take-screenshot";
-    data: PictosScreenshotData;
+    data: {
+        screenshotData: PictosScreenshotData;
+        description: string;
+        elementType: string;
+    };
 }
 
 export interface PictosActionSimple {
@@ -29,7 +48,9 @@ export interface PictosActionUrl {
 
 export interface PictosStep {
     dataUrl: string;
-    screenshot: PictosScreenshotData;
+    screenshotData: PictosScreenshotData;
+    description: string;
+    elementType: string;
 }
 
 export interface PictosActionStep {
@@ -42,20 +63,6 @@ export interface PictosActionRecordingState {
     data: {
         recording: boolean;
     };
-}
-
-export interface FocusData {
-    scaledX: number;
-    scaledY: number;
-    scaledElementWidth: number;
-    scaledElementHeight: number;
-}
-
-export interface Step {
-    screenshotUrl: string;
-    counter: number;
-    screenshotData: PictosScreenshotData;
-    focusData?: FocusData;
 }
 
 export interface PictosActionEditor {
