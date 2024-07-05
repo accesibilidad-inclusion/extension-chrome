@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import type { Guide } from "@/scripts/types";
+import jsPDF from "jspdf";
 
 const guide = ref<Guide>({
     title: "Mi Guía",
@@ -40,20 +41,71 @@ onMounted(() => {
 });
 
 watch(guide, saveGuideToLocalStorage, { deep: true });
+
+const downloadGuide = async () => {
+    const pdf = new jsPDF("p", "mm", "a4");
+
+    // Add title to the PDF
+    pdf.setFontSize(24);
+    pdf.text(guide.value.title, 20, 20);
+
+    let yOffset = 40;
+
+    for (const step of guide.value.steps) {
+        // Add step number and title
+        pdf.setFontSize(16);
+        pdf.text(`Paso ${step.counter}: ${step.title}`, 20, yOffset);
+        yOffset += 10;
+
+        // Add description
+        pdf.setFontSize(12);
+        const descriptionLines = pdf.splitTextToSize(step.description, 170);
+        pdf.text(descriptionLines, 20, yOffset);
+        yOffset += 10 * descriptionLines.length;
+
+        // Add screenshot
+        const imgWidth = 170;
+        const imgHeight = (170 * 9) / 16; // Assuming 16:9 aspect ratio, adjust if needed
+
+        if (yOffset + imgHeight > 280) {
+            pdf.addPage();
+            yOffset = 20;
+        }
+
+        pdf.addImage(step.screenshotUrl, "PNG", 20, yOffset, imgWidth, imgHeight);
+        yOffset += imgHeight + 20;
+
+        if (yOffset > 250) {
+            pdf.addPage();
+            yOffset = 20;
+        }
+    }
+
+    pdf.save(`${guide.value.title}.pdf`);
+};
 </script>
 
 <template>
-    <div class="max-w-2xl mx-auto my-12">
+    <div class="max-w-2xl mx-auto my-12" id="guide-content">
         <div class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-semibold">Editor de pasos</h1>
-            <button
-                @click="isEditing = !isEditing"
-                class="px-5 py-2 text-white rounded flex items-center gap-2"
-                :class="[isEditing ? 'bg-red-500' : 'bg-blue-500']"
-            >
-                <img src="/assets/edit.svg" alt="edit-icon" class="w-4 h-4" />
-                <span>{{ isEditing ? "Dejar de editar" : "Editar" }}</span>
-            </button>
+            <div class="flex gap-2">
+                <button
+                    @click="isEditing = !isEditing"
+                    class="px-5 py-2 text-white rounded flex items-center gap-2"
+                    :class="[isEditing ? 'bg-red-500' : 'bg-blue-500']"
+                >
+                    <img src="/assets/edit.svg" alt="edit-icon" class="w-4 h-4" />
+                    <span>{{ isEditing ? "Dejar de editar" : "Editar" }}</span>
+                </button>
+                <button
+                    @click="downloadGuide"
+                    class="px-5 py-2 bg-yellow-500 text-white rounded flex items-center gap-2"
+                >
+                    <!-- <img src="/assets/download.svg" alt="download-icon" class="w-4 h-4" /> -->
+                    <span>Descargar guía</span>
+                </button>
+            </div>
         </div>
 
         <div class="mb-6">
@@ -90,6 +142,7 @@ watch(guide, saveGuideToLocalStorage, { deep: true });
                     <p v-else class="text-base">{{ step.description }}</p>
                 </div>
                 <img
+                    :id="`step-image-${index}`"
                     :src="step.screenshotUrl"
                     class="w-full h-auto rounded border"
                     :alt="step.title"
