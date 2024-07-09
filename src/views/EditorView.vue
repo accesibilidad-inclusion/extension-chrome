@@ -33,7 +33,14 @@ const editDescription = (index: number, newDescription: string) => {
     }
 };
 
-
+const addStep = () => {
+    guide.value.steps.push({
+        title: 'Nuevo Paso',
+        description: '',
+        screenshotUrl: '',
+    });
+    saveGuideToLocalStorage();
+};
 
 const removeStep = (index: number) => {
     guide.value.steps.splice(index, 1);
@@ -142,5 +149,7 @@ const downloadGuide = async () => {
                 </div>
             </li>
         </ul>
+        <button v-if="isEditing" @click="addStep" class="mt-4 px-4 py-2 bg-green-500 text-white rounded">Agregar
+            Paso</button>
     </div>
 </template>
