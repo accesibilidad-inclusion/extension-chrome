@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import type { Guide } from "@/scripts/types";
+import type { Guide, Step } from "@/scripts/types";
 import jsPDF from "jspdf";
 
 const guide = ref<Guide>({
@@ -33,6 +33,15 @@ const editDescription = (index: number, newDescription: string) => {
     }
 };
 
+
+
+const removeStep = (index: number) => {
+    guide.value.steps.splice(index, 1);
+    saveGuideToLocalStorage();
+};
+
+
+
 onMounted(() => {
     const savedGuide = localStorage.getItem("pictos_guide");
     if (savedGuide) {
@@ -52,9 +61,10 @@ const downloadGuide = async () => {
     let yOffset = 40;
 
     for (const step of guide.value.steps) {
-        // Add step number and title
+
         pdf.setFontSize(16);
         pdf.text(`Paso ${step.counter}: ${step.title}`, 20, yOffset);
+
         yOffset += 10;
 
         // Add description
@@ -90,18 +100,13 @@ const downloadGuide = async () => {
         <div class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-semibold">Editor de pasos</h1>
             <div class="flex gap-2">
-                <button
-                    @click="isEditing = !isEditing"
-                    class="px-5 py-2 text-white rounded flex items-center gap-2"
-                    :class="[isEditing ? 'bg-red-500' : 'bg-blue-500']"
-                >
+                <button @click="isEditing = !isEditing" class="px-5 py-2 text-white rounded flex items-center gap-2"
+                    :class="[isEditing ? 'bg-red-500' : 'bg-blue-500']">
                     <img src="/assets/edit.svg" alt="edit-icon" class="w-4 h-4" />
                     <span>{{ isEditing ? "Dejar de editar" : "Editar" }}</span>
                 </button>
-                <button
-                    @click="downloadGuide"
-                    class="px-5 py-2 bg-yellow-500 text-white rounded flex items-center gap-2"
-                >
+                <button @click="downloadGuide"
+                    class="px-5 py-2 bg-yellow-500 text-white rounded flex items-center gap-2">
                     <!-- <img src="/assets/download.svg" alt="download-icon" class="w-4 h-4" /> -->
                     <span>Descargar guía</span>
                 </button>
@@ -109,12 +114,8 @@ const downloadGuide = async () => {
         </div>
 
         <div class="mb-6">
-            <input
-                v-if="isEditing"
-                v-model="guide.title"
-                @blur="editGuideTitle(guide.title)"
-                class="text-2xl font-bold p-2 border rounded w-full"
-            />
+            <input v-if="isEditing" v-model="guide.title" @blur="editGuideTitle(guide.title)"
+                class="text-2xl font-bold p-2 border rounded w-full" />
             <h2 v-else class="text-2xl font-bold">{{ guide.title }}</h2>
         </div>
 
@@ -122,31 +123,23 @@ const downloadGuide = async () => {
             <li v-for="(step, index) in guide.steps" :key="index">
                 <div class="flex items-center gap-4 mb-2">
                     <div class="w-9 h-9 rounded-full bg-gray-200 flex justify-center items-center">
-                        <span class="text-lg">{{ step.counter }}</span>
+                        <span class="text-lg">{{ index + 1 }}</span>
                     </div>
-                    <input
-                        v-if="isEditing"
-                        v-model="step.title"
-                        @blur="editStepTitle(index, step.title)"
-                        class="text-lg font-medium p-1 border rounded flex-grow"
-                    />
+                    <input v-if="isEditing" v-model="step.title" @blur="editStepTitle(index, step.title)"
+                        class="text-lg font-medium p-1 border rounded flex-grow" />
                     <p v-else class="text-lg font-medium">{{ step.title }}</p>
                 </div>
                 <div class="mb-5">
-                    <input
-                        v-if="isEditing"
-                        v-model="step.description"
-                        @blur="editDescription(index, step.description)"
-                        class="text-base p-1 border rounded w-full"
-                    />
+                    <input v-if="isEditing" v-model="step.description" @blur="editDescription(index, step.description)"
+                        class="text-base p-1 border rounded w-full" />
                     <p v-else class="text-base">{{ step.description }}</p>
                 </div>
-                <img
-                    :id="`step-image-${index}`"
-                    :src="step.screenshotUrl"
-                    class="w-full h-auto rounded border"
-                    :alt="step.title"
-                />
+                <img :id="`step-image-${index}`" :src="step.screenshotUrl" class="w-full h-auto rounded border"
+                    :alt="step.title" />
+                <div v-if="isEditing" class="flex flex-col gap-2 mt-2">
+                    <button @click="removeStep(index)" class="px-4 py-2 bg-red-500 text-white rounded">Eliminar
+                        Paso</button>
+                </div>
             </li>
         </ul>
     </div>
