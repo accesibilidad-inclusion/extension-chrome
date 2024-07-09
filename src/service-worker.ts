@@ -57,16 +57,22 @@ chrome.action.onClicked.addListener((tab) => {
             windowId: tab.windowId,
         })
         .then(() => {
-            checkAvailableAid(tab.url)?.then((url) => {
-                if (url) {
-                    sendMessage({
-                        action: "pictos__sidepanel-show-aid",
-                        url: url,
-                    });
-                } else {
-                    sendMessage({ action: "pictos__sidepanel-empty" });
-                }
-            });
+            const domain = new URL(tab.url).hostname;
+            const aidDismissed = localStorage.getItem(`aidDismissed_${domain}`);
+            const currentTime = new Date().getTime();
+
+            if (!aidDismissed || currentTime - parseInt(aidDismissed) >= 24 * 60 * 60 * 1000) {
+                checkAvailableAid(tab.url)?.then((url) => {
+                    if (url) {
+                        sendMessage({
+                            action: "pictos__sidepanel-show-aid",
+                            url: url,
+                        });
+                    } else {
+                        sendMessage({ action: "pictos__sidepanel-empty" });
+                    }
+                });
+            }
         });
 });
 
@@ -153,6 +159,9 @@ const addedListener = async (
         case "pictos__open-editor":
             onOpenEditor(message);
             break;
+        case "pictos__dismiss-aid":
+            dismissAid(sender);
+            break;
         default:
             break;
     }
@@ -167,3 +176,18 @@ chrome.tabs.onUpdated.addListener((tabId) => {
         });
     }
 });
+
+// Función para manejar la acción de "cerrar"
+const dismissAid = (sender: chrome.runtime.MessageSender) => {
+    if (!sender.tab) {
+        console.error("tabId incorrecto!");
+        return;
+    }
+
+    const domain = new URL(sender.tab.url).hostname;
+    const currentTime = new Date().getTime();
+    localStorage.setItem(`aidDismissed_${domain}`, currentTime.toString());
+    sendMessage({
+        action: "pictos__hide-aid",
+    });
+};

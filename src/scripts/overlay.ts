@@ -4,13 +4,19 @@ import { sendMessage } from "@/scripts/types";
 checkAvailableAid(window.location.href)?.then((url) => {
     if (!url) return;
 
-    // Elemento contendor
+    const domain = new URL(window.location.href).hostname;
+    const aidDismissed = localStorage.getItem(`aidDismissed_${domain}`);
+    const currentTime = new Date().getTime();
+
+    if (aidDismissed && currentTime - parseInt(aidDismissed) < 24 * 60 * 60 * 1000) return;
+
+    // Elemento contenedor
     const overlay = document.createElement("div");
     overlay.classList.add("pictos-overlay");
     overlay.classList.add("pictos-overlay--hidden");
     overlay.id = "pictos-overlay";
 
-    // Mensage del overlay
+    // Mensaje del overlay
     const overlayText = document.createElement("div");
     overlayText.classList.add("pictos-overlay__text");
 
@@ -45,13 +51,14 @@ checkAvailableAid(window.location.href)?.then((url) => {
     overlayText.appendChild(overlayTextMessage);
     overlay.appendChild(overlayText);
 
-    // Boton para cerrar overlay
+    // Botón para cerrar overlay
     const overlayClose = document.createElement("button");
     overlayClose.classList.add("pictos-overlay__close");
     overlayClose.textContent = chrome.i18n.getMessage("overlayTextClose");
     overlayClose.addEventListener("click", (e) => {
         e.preventDefault();
         overlay.classList.remove("pictos-overlay--visible");
+        localStorage.setItem(`aidDismissed_${domain}`, currentTime.toString());
     });
 
     overlay.appendChild(overlayClose);
@@ -68,7 +75,7 @@ checkAvailableAid(window.location.href)?.then((url) => {
         }
     });
 
-    // Monstrar overlay despues de 350 ms
+    // Mostrar overlay después de 350 ms
     setTimeout(() => {
         overlay.classList.add("pictos-overlay--visible");
     }, 350);
