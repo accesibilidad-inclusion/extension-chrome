@@ -47,7 +47,19 @@ const removeStep = (index: number) => {
     saveGuideToLocalStorage();
 };
 
-
+const uploadImage = (event: Event, index: number) => {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            if (guide.value.steps[index]) {
+                guide.value.steps[index].screenshotUrl = e.target?.result as string;
+                saveGuideToLocalStorage();
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+};
 
 onMounted(() => {
     const savedGuide = localStorage.getItem("pictos_guide");
@@ -144,6 +156,12 @@ const downloadGuide = async () => {
                 <img :id="`step-image-${index}`" :src="step.screenshotUrl" class="w-full h-auto rounded border"
                     :alt="step.title" />
                 <div v-if="isEditing" class="flex flex-col gap-2 mt-2">
+                    <input type="file" @change="uploadImage($event, index)" class="block w-full text-sm text-gray-500
+                               file:mr-4 file:py-2 file:px-4
+                               file:rounded-full file:border-0
+                               file:text-sm file:font-semibold
+                               file:bg-blue-50 file:text-blue-700
+                               hover:file:bg-blue-100" />
                     <button @click="removeStep(index)" class="px-4 py-2 bg-red-500 text-white rounded">Eliminar
                         Paso</button>
                 </div>
