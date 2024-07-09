@@ -37,7 +37,23 @@ const addStep = () => {
     guide.value.steps.push({
         title: 'Nuevo Paso',
         description: '',
+        elementType: '',
         screenshotUrl: '',
+        counter: 0,
+        screenshotData: {
+            screenX: 0,
+            screenY: 0,
+            screenElementWidth: 0,
+            screenElementHeight: 0,
+            screenWidth: 0,
+            screenHeight: 0,
+        },
+        focusData: {
+            scaledX: 0,
+            scaledY: 0,
+            scaledElementWidth: 0,
+            scaledElementHeight: 0,
+        },
     });
     saveGuideToLocalStorage();
 };
@@ -53,8 +69,14 @@ const uploadImage = (event: Event, index: number) => {
         const reader = new FileReader();
         reader.onload = (e) => {
             if (guide.value.steps[index]) {
-                guide.value.steps[index].screenshotUrl = e.target?.result as string;
-                saveGuideToLocalStorage();
+                const img = new Image();
+                img.onload = () => {
+                    guide.value.steps[index].screenshotData.screenElementWidth = img.width;
+                    guide.value.steps[index].screenshotData.screenElementHeight = img.height;
+                    guide.value.steps[index].screenshotUrl = e.target?.result as string;
+                    saveGuideToLocalStorage();
+                };
+                img.src = e.target?.result as string;
             }
         };
         reader.readAsDataURL(file);
