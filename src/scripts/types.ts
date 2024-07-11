@@ -74,23 +74,13 @@ export interface PictosActionEditor {
     };
 }
 
-export interface PictosActionHideAid {
-    action: "pictos__hide-aid";
-}
-
-export interface PictosActionDismissAid {
-    action: "pictos__dismiss-aid";
-}
-
 export type PictosAction =
     | PictosActionSimple
     | PictosActionUrl
     | PictosActionScreenshot
     | PictosActionStep
     | PictosActionRecordingState
-    | PictosActionEditor
-    | PictosActionHideAid
-    | PictosActionDismissAid;
+    | PictosActionEditor;
 
 export async function sendMessage(action: PictosAction) {
     return chrome.runtime.sendMessage(action);

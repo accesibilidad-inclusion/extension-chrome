@@ -1,15 +1,39 @@
-import { checkAvailableAid } from "@/scripts/check-available-aids";
+import {
+    checkAvailableAid,
+    shouldShowOverlay,
+    getDomainFromUrl,
+} from "@/scripts/check-available-aids";
 import { sendMessage } from "@/scripts/types";
 
-checkAvailableAid(window.location.href)?.then((url) => {
-    if (!url) return;
+async function initializeOverlay() {
+    // Check if we're in a content script context
+    if (window.location.protocol.startsWith("http")) {
+        const currentUrl = window.location.href;
+        const domain = getDomainFromUrl(currentUrl);
 
-    const domain = new URL(window.location.href).hostname;
-    const aidDismissed = localStorage.getItem(`aidDismissed_${domain}`);
-    const currentTime = new Date().getTime();
+        console.log(`Initializing overlay for domain: ${domain}`);
 
-    if (aidDismissed && currentTime - parseInt(aidDismissed) < 24 * 60 * 60 * 1000) return;
+        const showOverlay = await shouldShowOverlay(domain);
 
+        if (!showOverlay) {
+            console.log("Overlay cooldown active, not showing overlay");
+            return;
+        }
+
+        const url = await checkAvailableAid(currentUrl);
+        if (!url) {
+            console.log("No aid available, not showing overlay");
+            return;
+        }
+
+        console.log("Creating and showing overlay");
+        createAndShowOverlay(url);
+    } else {
+        console.log("Not in content script context, skipping overlay initialization");
+    }
+}
+
+function createAndShowOverlay(url: string) {
     // Elemento contenedor
     const overlay = document.createElement("div");
     overlay.classList.add("pictos-overlay");
@@ -58,7 +82,6 @@ checkAvailableAid(window.location.href)?.then((url) => {
     overlayClose.addEventListener("click", (e) => {
         e.preventDefault();
         overlay.classList.remove("pictos-overlay--visible");
-        localStorage.setItem(`aidDismissed_${domain}`, currentTime.toString());
     });
 
     overlay.appendChild(overlayClose);
@@ -82,4 +105,7 @@ checkAvailableAid(window.location.href)?.then((url) => {
 
     // Enviar mensaje de aid-available
     sendMessage({ action: "pictos__aid-available" });
-});
+}
+
+// Call initializeOverlay when the content script loads
+initializeOverlay();

@@ -1,6 +1,10 @@
 /// <reference types="chrome"/>
 
-import { checkAvailableAid } from "@/scripts/check-available-aids";
+import {
+    checkAvailableAid,
+    shouldShowOverlay,
+    getDomainFromUrl,
+} from "@/scripts/check-available-aids";
 import type {
     PictosAction,
     PictosActionUrl,
@@ -48,37 +52,31 @@ chrome.sidePanel
     .setPanelBehavior({ openPanelOnActionClick: false })
     .catch((error) => console.error(error));
 
-chrome.action.onClicked.addListener((tab) => {
-    if (editorTabId === tab.id) return;
+chrome.action.onClicked.addListener(async (tab) => {
+    if (editorTabId === tab.id || !tab.url) return;
 
-    chrome.sidePanel
-        .open({
-            tabId: tab.id,
-            windowId: tab.windowId,
-        })
-        .then(() => {
-            const domain = new URL(tab.url).hostname;
-            const aidDismissed = localStorage.getItem(`aidDismissed_${domain}`);
-            const currentTime = new Date().getTime();
+    try {
+        await chrome.sidePanel.open({ tabId: tab.id, windowId: tab.windowId });
 
-            if (!aidDismissed || currentTime - parseInt(aidDismissed) >= 24 * 60 * 60 * 1000) {
-                checkAvailableAid(tab.url)?.then((url) => {
-                    if (url) {
-                        sendMessage({
-                            action: "pictos__sidepanel-show-aid",
-                            url: url,
-                        });
-                    } else {
-                        sendMessage({ action: "pictos__sidepanel-empty" });
-                    }
-                });
+        const domain = getDomainFromUrl(tab.url);
+        const shouldShow = await shouldShowOverlay(domain);
+
+        if (shouldShow) {
+            const url = await checkAvailableAid(tab.url);
+            if (url) {
+                sendMessage({ action: "pictos__sidepanel-show-aid", url: url });
+            } else {
+                sendMessage({ action: "pictos__sidepanel-empty" });
             }
-        });
+        }
+    } catch (error) {
+        console.error("Error in chrome.action.onClicked:", error);
+    }
 });
 
-const onAidAvailable = (sender: chrome.runtime.MessageSender) => {
-    if (!sender.tab) {
-        console.error("tabId incorrecto!");
+const onAidAvailable = async (sender: chrome.runtime.MessageSender) => {
+    if (!sender.tab?.id || !sender.tab.url) {
+        console.error("tabId or URL incorrect!");
         return;
     }
 
@@ -159,9 +157,6 @@ const addedListener = async (
         case "pictos__open-editor":
             onOpenEditor(message);
             break;
-        case "pictos__dismiss-aid":
-            dismissAid(sender);
-            break;
         default:
             break;
     }
@@ -176,18 +171,3 @@ chrome.tabs.onUpdated.addListener((tabId) => {
         });
     }
 });
-
-// Función para manejar la acción de "cerrar"
-const dismissAid = (sender: chrome.runtime.MessageSender) => {
-    if (!sender.tab) {
-        console.error("tabId incorrecto!");
-        return;
-    }
-
-    const domain = new URL(sender.tab.url).hostname;
-    const currentTime = new Date().getTime();
-    localStorage.setItem(`aidDismissed_${domain}`, currentTime.toString());
-    sendMessage({
-        action: "pictos__hide-aid",
-    });
-};
