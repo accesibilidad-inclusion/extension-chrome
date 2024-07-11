@@ -1,11 +1,20 @@
 import { sendMessage, addListener } from "@/scripts/types";
 
 let recording = false;
+let popover: HTMLDivElement | null = null;
+
+const initializeState = () => {
+    chrome.storage.local.get(["recording"], (result) => {
+        recording = result.recording || false;
+        setupPopover();
+    });
+};
 
 addListener((request) => {
     if (request.action === "pictos__update-recording-state") {
         if (request.data.recording !== undefined) {
             recording = request.data.recording;
+            setupPopover();
         }
     }
 });
@@ -66,9 +75,18 @@ const createTitle = (el: Element): string => {
 };
 
 const setupPopover = () => {
+    // Remove existing popover if any
+    if (popover) {
+        popover.remove();
+    }
+
+    // Create the popover
+    popover = document.createElement("div");
+    popover.classList.add("pictos-popover");
+    document.body.appendChild(popover);
+
     // Add styles using regular CSS
     const style = document.createElement("style");
-
     style.textContent = `
     .pictos-popover {
         position: absolute;
@@ -81,52 +99,63 @@ const setupPopover = () => {
         display: none;
     }
     `;
-
     document.head.appendChild(style);
 
+    setupInteractiveElements();
+};
+
+const setupInteractiveElements = () => {
     const interactiveElements = getInteractiveElements();
 
-    // Create the popover
-    const popover = document.createElement("div");
-    popover.classList.add("pictos-popover");
-    document.body.appendChild(popover);
-
     interactiveElements.forEach((el: Element) => {
-        el.addEventListener("mouseover", () => {
-            if (!recording) return;
-            const content = createTitle(el);
-            popover.textContent = content;
-            popover.style.display = "block";
-            const rect = el.getBoundingClientRect();
-            popover.style.left = `${rect.left + window.scrollX}px`;
-            popover.style.top = `${rect.bottom + window.scrollY + 5}px`;
-        });
+        // Remove existing listeners
+        el.removeEventListener("mouseover", handleMouseOver);
+        el.removeEventListener("mouseout", handleMouseOut);
+        el.removeEventListener("click", handleClick);
 
-        el.addEventListener("mouseout", () => {
-            if (!recording) return;
-            popover.style.display = "none";
-        });
+        // Add new listeners
+        el.addEventListener("mouseover", handleMouseOver);
+        el.addEventListener("mouseout", handleMouseOut);
+        el.addEventListener("click", handleClick);
+    });
+};
 
-        el.addEventListener("click", () => {
-            if (!recording) return;
-            const rect = el.getBoundingClientRect();
-            const actualTitle = createTitle(el);
-            sendMessage({
-                action: "pictos__take-screenshot",
-                data: {
-                    screenshotData: {
-                        screenX: rect.left + rect.width / 2,
-                        screenY: rect.top + rect.height / 2,
-                        screenElementWidth: rect.width,
-                        screenElementHeight: rect.height,
-                        screenWidth: window.innerWidth,
-                        screenHeight: window.innerHeight,
-                    },
-                    title: actualTitle,
-                    elementType: el.tagName.toLowerCase(),
-                },
-            });
-        });
+const handleMouseOver = (event: Event) => {
+    if (!recording || !popover) return;
+    const el = event.target as Element;
+    const content = createTitle(el);
+    popover.textContent = content;
+    popover.style.display = "block";
+    const rect = el.getBoundingClientRect();
+    popover.style.left = `${rect.left + window.scrollX}px`;
+    popover.style.top = `${rect.bottom + window.scrollY + 5}px`;
+};
+
+const handleMouseOut = () => {
+    if (!recording || !popover) return;
+    popover.style.display = "none";
+};
+
+const handleClick = (event: Event) => {
+    if (!recording) return;
+    const el = event.target as Element;
+    const rect = el.getBoundingClientRect();
+    const actualTitle = createTitle(el);
+    console.log("Sending screenshot message from capture.ts", Date.now());
+    sendMessage({
+        action: "pictos__take-screenshot",
+        data: {
+            screenshotData: {
+                screenX: rect.left + rect.width / 2,
+                screenY: rect.top + rect.height / 2,
+                screenElementWidth: rect.width,
+                screenElementHeight: rect.height,
+                screenWidth: window.innerWidth,
+                screenHeight: window.innerHeight,
+            },
+            title: actualTitle,
+            elementType: el.tagName.toLowerCase(),
+        },
     });
 };
 
@@ -168,4 +197,5 @@ const getInteractiveElements = (): Element[] => {
     return Array.from(elements);
 };
 
+initializeState();
 setupPopover();
