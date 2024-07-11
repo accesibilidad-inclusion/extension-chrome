@@ -39,7 +39,7 @@ export interface PictosActionScreenshot {
 }
 
 export interface PictosActionSimple {
-    action: "pictos__aid-available" | "pictos__sidepanel-empty" | "pictos__editor-route";
+    action: "pictos__show-aids-available-icon" | "pictos__sidepanel-empty" | "pictos__editor-route";
 }
 
 export interface PictosActionUrl {

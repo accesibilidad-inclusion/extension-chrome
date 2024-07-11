@@ -13,16 +13,18 @@ async function initializeOverlay() {
 
         console.log(`Initializing overlay for domain: ${domain}`);
 
+        const url = await checkAvailableAid(currentUrl);
+        if (!url) {
+            console.log("No aid available, not showing overlay");
+            return;
+        } else {
+            sendMessage({ action: "pictos__show-aids-available-icon" });
+        }
+
         const showOverlay = await shouldShowOverlay(domain);
 
         if (!showOverlay) {
             console.log("Overlay cooldown active, not showing overlay");
-            return;
-        }
-
-        const url = await checkAvailableAid(currentUrl);
-        if (!url) {
-            console.log("No aid available, not showing overlay");
             return;
         }
 
@@ -102,9 +104,6 @@ function createAndShowOverlay(url: string) {
     setTimeout(() => {
         overlay.classList.add("pictos-overlay--visible");
     }, 350);
-
-    // Enviar mensaje de aid-available
-    sendMessage({ action: "pictos__aid-available" });
 }
 
 // Call initializeOverlay when the content script loads

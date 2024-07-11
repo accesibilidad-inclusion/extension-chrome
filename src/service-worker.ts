@@ -1,10 +1,6 @@
 /// <reference types="chrome"/>
 
-import {
-    checkAvailableAid,
-    shouldShowOverlay,
-    getDomainFromUrl,
-} from "@/scripts/check-available-aids";
+import { checkAvailableAid } from "@/scripts/check-available-aids";
 import type {
     PictosAction,
     PictosActionUrl,
@@ -58,25 +54,20 @@ chrome.action.onClicked.addListener(async (tab) => {
     try {
         await chrome.sidePanel.open({ tabId: tab.id, windowId: tab.windowId });
 
-        const domain = getDomainFromUrl(tab.url);
-        const shouldShow = await shouldShowOverlay(domain);
-
-        if (shouldShow) {
-            const url = await checkAvailableAid(tab.url);
-            if (url) {
-                sendMessage({ action: "pictos__sidepanel-show-aid", url: url });
-            } else {
-                sendMessage({ action: "pictos__sidepanel-empty" });
-            }
+        const url = await checkAvailableAid(tab.url);
+        if (url) {
+            sendMessage({ action: "pictos__sidepanel-show-aid", url: url });
+        } else {
+            sendMessage({ action: "pictos__sidepanel-empty" });
         }
     } catch (error) {
         console.error("Error in chrome.action.onClicked:", error);
     }
 });
 
-const onAidAvailable = async (sender: chrome.runtime.MessageSender) => {
-    if (!sender.tab?.id || !sender.tab.url) {
-        console.error("tabId or URL incorrect!");
+const onShowAidsAvailableIcon = async (sender: chrome.runtime.MessageSender) => {
+    if (!sender.tab?.id) {
+        console.error("tab id incorrecto!");
         return;
     }
 
@@ -145,8 +136,8 @@ const addedListener = async (
     sendResponse: (response: any) => void,
 ) => {
     switch (message.action) {
-        case "pictos__aid-available":
-            onAidAvailable(sender);
+        case "pictos__show-aids-available-icon":
+            onShowAidsAvailableIcon(sender);
             break;
         case "pictos__overlay-open-sidepanel":
             onOverlayOpenSidepanel(message, sender);
