@@ -15,6 +15,19 @@ export const state = reactive({
     recording: false,
 });
 
+// Vamos a usar la API de storage de Chrome para persistir el estado reactivo
+chrome.storage.local.get(["recording"], (result) => {
+    state.recording = result.recording || false;
+});
+
+watch(
+    () => state.recording,
+    (newValue) => {
+        chrome.storage.local.set({ recording: newValue });
+        updateAllTabs();
+    },
+);
+
 export const startRecording = () => {
     state.recording = true;
 };
@@ -22,27 +35,31 @@ export const startRecording = () => {
 export const stopRecording = () => {
     state.recording = false;
 };
+const updateAllTabs = () => {
+    chrome.tabs.query({}, (tabs) => {
+        tabs.forEach((tab) => {
+            if (tab.id && tab.url && tab.url.startsWith("http")) {
+                chrome.tabs.sendMessage(
+                    tab.id,
+                    {
+                        action: "pictos__update-recording-state",
+                        data: { recording: state.recording },
+                    },
+                    (response) => {
+                        if (chrome.runtime.lastError) {
+                            console.log(
+                                `Failed to send message to tab ${tab.id}: ${chrome.runtime.lastError.message}`,
+                            );
+                        }
+                    },
+                );
+            }
+        });
+    });
+};
 
 let editorTabId: number | undefined;
 let guide: Guide;
-
-watch(
-    () => state.recording,
-    async (recording) => {
-        console.log("recording state updated from service worker: ", recording);
-        const queryOptions = { active: true, lastFocusedWindow: true };
-        const [tab] = await chrome.tabs.query(queryOptions);
-        if (tab && tab.id) {
-            console.log("tab exists!, sending message to content script");
-            chrome.tabs.sendMessage(tab.id, {
-                action: "pictos__update-recording-state",
-                data: {
-                    recording: recording,
-                },
-            });
-        }
-    },
-);
 
 chrome.sidePanel
     .setPanelBehavior({ openPanelOnActionClick: false })
@@ -107,7 +124,7 @@ const onTakeScreenshot = async (
         return;
     }
 
-    chrome.tabs.captureVisibleTab({ format: "png" }, (dataUrl) => {
+    chrome.tabs.captureVisibleTab({ format: "jpeg" }, (dataUrl) => {
         sendMessage({
             action: "pictos__add-step",
             data: {
