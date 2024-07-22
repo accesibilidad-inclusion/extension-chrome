@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watch, onMounted, ref, nextTick } from "vue";
-import type { PictosStep, FocusData, Step, Guide } from "@/scripts/types";
+import type { AddStepData, FocusData, Step, Guide } from "@/scripts/types";
 import { addListener, sendMessage } from "@/scripts/types";
 import { state, startRecording, stopRecording } from "@/service-worker";
 
@@ -23,7 +23,7 @@ onMounted(() => {
 watch(guide, saveGuideToLocalStorage, { deep: true });
 
 addListener((request) => {
-    if (request.action === "pictos__add-step" && state.recording) {
+    if (request.action === "ADD_STEP" && state.recording) {
         if (request.data.dataUrl) {
             addStep(request.data);
         } else {
@@ -32,7 +32,7 @@ addListener((request) => {
     }
 });
 
-const addStep = (data: PictosStep) => {
+const addStep = (data: AddStepData) => {
     const newStep: Step = {
         screenshotUrl: data.dataUrl,
         counter: guide.value.steps.length + 1,
@@ -111,7 +111,7 @@ const cutoutStyle = (data: FocusData) => {
 const openEditor = () => {
     chrome.tabs.create({ url: "index.html" }, (tab) => {
         sendMessage({
-            action: "pictos__open-editor",
+            action: "OPEN_EDITOR",
             data: {
                 tabId: tab.id,
                 guide: guide.value,

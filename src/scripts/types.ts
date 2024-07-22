@@ -36,17 +36,17 @@ interface BaseAction {
     action: string;
 }
 
-interface SimpleAction extends BaseAction {
-    action: "pictos__show-aids-available-icon" | "pictos__sidepanel-empty" | "pictos__editor-route";
+interface ApplicationAction extends BaseAction {
+    action: "UPDATE_ICON_AIDS_AVAILABLE" | "CLEAR_SIDEPANEL" | "NAVIGATE_TO_EDITOR";
 }
 
-interface UrlAction extends BaseAction {
-    action: "pictos__overlay-open-sidepanel" | "pictos__sidepanel-show-aid";
+interface SidepanelAction extends BaseAction {
+    action: "OPEN_SIDEPANEL" | "LOAD_AID_IN_SIDEPANEL";
     url: string;
 }
 
-interface ScreenshotAction extends BaseAction {
-    action: "pictos__take-screenshot";
+interface CaptureScreenshotAction extends BaseAction {
+    action: "CAPTURE_SCREENSHOT";
     data: {
         screenshotData: ScreenshotData;
         title: string;
@@ -54,25 +54,27 @@ interface ScreenshotAction extends BaseAction {
     };
 }
 
-interface StepAction extends BaseAction {
-    action: "pictos__add-step";
-    data: {
-        dataUrl: string;
-        screenshotData: ScreenshotData;
-        title: string;
-        elementType: string;
-    };
+interface AddStepData {
+    dataUrl: string;
+    screenshotData: ScreenshotData;
+    title: string;
+    elementType: string;
 }
 
-interface RecordingStateAction extends BaseAction {
-    action: "pictos__update-recording-state";
+interface AddStepAction extends BaseAction {
+    action: "ADD_STEP";
+    data: AddStepData;
+}
+
+interface UpdateRecordingStateAction extends BaseAction {
+    action: "UPDATE_RECORDING_STATE";
     data: {
         recording: boolean;
     };
 }
 
-interface EditorAction extends BaseAction {
-    action: "pictos__open-editor";
+interface OpenEditorAction extends BaseAction {
+    action: "OPEN_EDITOR";
     data: {
         tabId?: number;
         guide: Guide;
@@ -81,12 +83,12 @@ interface EditorAction extends BaseAction {
 
 // Union type for all actions
 type PictosAction =
-    | SimpleAction
-    | UrlAction
-    | ScreenshotAction
-    | StepAction
-    | RecordingStateAction
-    | EditorAction;
+    | ApplicationAction
+    | SidepanelAction
+    | CaptureScreenshotAction
+    | AddStepAction
+    | UpdateRecordingStateAction
+    | OpenEditorAction;
 
 // Utility functions
 async function sendMessage(action: PictosAction): Promise<any> {
@@ -97,19 +99,19 @@ function addListener(callback: (request: PictosAction) => void): void {
     chrome.runtime.onMessage.addListener(callback);
 }
 
-// Exports
 export type {
     Guide,
     Step,
     ScreenshotData,
     FocusData,
+    ApplicationAction,
     PictosAction,
-    SimpleAction,
-    UrlAction,
-    ScreenshotAction,
-    StepAction,
-    RecordingStateAction,
-    EditorAction,
+    SidepanelAction,
+    CaptureScreenshotAction,
+    AddStepAction,
+    AddStepData,
+    UpdateRecordingStateAction,
+    OpenEditorAction,
 };
 
 export { sendMessage, addListener };

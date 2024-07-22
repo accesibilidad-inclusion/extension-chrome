@@ -4,9 +4,10 @@ import { checkAvailableAid } from "@/scripts/check-available-aids";
 import type {
     Guide,
     PictosAction,
-    UrlAction,
-    ScreenshotAction,
-    EditorAction,
+    SidepanelAction,
+    CaptureScreenshotAction,
+    OpenEditorAction,
+    UpdateRecordingStateAction,
 } from "@/scripts/types";
 import { sendMessage } from "@/scripts/types";
 import { reactive, watch } from "vue";
@@ -42,10 +43,10 @@ const updateAllTabs = () => {
                 chrome.tabs.sendMessage(
                     tab.id,
                     {
-                        action: "pictos__update-recording-state",
+                        action: "UPDATE_RECORDING_STATE",
                         data: { recording: state.recording },
-                    },
-                    (response) => {
+                    } as UpdateRecordingStateAction,
+                    () => {
                         if (chrome.runtime.lastError) {
                             console.log(
                                 `Failed to send message to tab ${tab.id}: ${chrome.runtime.lastError.message}`,
@@ -73,9 +74,9 @@ chrome.action.onClicked.addListener(async (tab) => {
 
         const url = await checkAvailableAid(tab.url);
         if (url) {
-            sendMessage({ action: "pictos__sidepanel-show-aid", url: url });
+            sendMessage({ action: "LOAD_AID_IN_SIDEPANEL", url: url });
         } else {
-            sendMessage({ action: "pictos__sidepanel-empty" });
+            sendMessage({ action: "CLEAR_SIDEPANEL" });
         }
     } catch (error) {
         console.error("Error in chrome.action.onClicked:", error);
@@ -94,7 +95,7 @@ const onShowAidsAvailableIcon = async (sender: chrome.runtime.MessageSender) => 
     });
 };
 
-const onOverlayOpenSidepanel = (action: UrlAction, sender: chrome.runtime.MessageSender) => {
+const onOverlayOpenSidepanel = (action: SidepanelAction, sender: chrome.runtime.MessageSender) => {
     if (!sender.tab) {
         console.error("tabId incorrecto!");
         return;
@@ -108,14 +109,17 @@ const onOverlayOpenSidepanel = (action: UrlAction, sender: chrome.runtime.Messag
         .then(() => {
             setTimeout(() => {
                 sendMessage({
-                    action: "pictos__sidepanel-show-aid",
+                    action: "LOAD_AID_IN_SIDEPANEL",
                     url: action.url,
                 });
             }, 50);
         });
 };
 
-const onTakeScreenshot = async (action: ScreenshotAction, sender: chrome.runtime.MessageSender) => {
+const onTakeScreenshot = async (
+    action: CaptureScreenshotAction,
+    sender: chrome.runtime.MessageSender,
+) => {
     if (!sender.tab) {
         console.error("tabId incorrecto!");
         return;
@@ -123,7 +127,7 @@ const onTakeScreenshot = async (action: ScreenshotAction, sender: chrome.runtime
 
     chrome.tabs.captureVisibleTab({ format: "jpeg" }, (dataUrl) => {
         sendMessage({
-            action: "pictos__add-step",
+            action: "ADD_STEP",
             data: {
                 dataUrl: dataUrl,
                 screenshotData: action.data.screenshotData,
@@ -134,7 +138,7 @@ const onTakeScreenshot = async (action: ScreenshotAction, sender: chrome.runtime
     });
 };
 
-const onOpenEditor = (action: EditorAction) => {
+const onOpenEditor = (action: OpenEditorAction) => {
     editorTabId = action.data.tabId;
     guide = action.data.guide;
 
@@ -144,22 +148,18 @@ const onOpenEditor = (action: EditorAction) => {
     });
 };
 
-const addedListener = async (
-    message: PictosAction,
-    sender: chrome.runtime.MessageSender,
-    sendResponse: (response: any) => void,
-) => {
+const addedListener = async (message: PictosAction, sender: chrome.runtime.MessageSender) => {
     switch (message.action) {
-        case "pictos__show-aids-available-icon":
+        case "UPDATE_ICON_AIDS_AVAILABLE":
             onShowAidsAvailableIcon(sender);
             break;
-        case "pictos__overlay-open-sidepanel":
+        case "OPEN_SIDEPANEL":
             onOverlayOpenSidepanel(message, sender);
             break;
-        case "pictos__take-screenshot":
+        case "CAPTURE_SCREENSHOT":
             onTakeScreenshot(message, sender);
             break;
-        case "pictos__open-editor":
+        case "OPEN_EDITOR":
             onOpenEditor(message);
             break;
         default:
@@ -172,7 +172,7 @@ chrome.runtime.onMessage.addListener(addedListener);
 chrome.tabs.onUpdated.addListener((tabId) => {
     if (tabId === editorTabId) {
         sendMessage({
-            action: "pictos__editor-route",
+            action: "NAVIGATE_TO_EDITOR",
         });
     }
 });

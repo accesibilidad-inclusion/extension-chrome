@@ -18,7 +18,7 @@ async function initializeOverlay() {
             console.log("No aid available, not showing overlay");
             return;
         } else {
-            sendMessage({ action: "pictos__show-aids-available-icon" });
+            sendMessage({ action: "UPDATE_ICON_AIDS_AVAILABLE" });
         }
 
         const showOverlay = await shouldShowOverlay(domain);
@@ -66,7 +66,7 @@ function createAndShowOverlay(url: string) {
         e.preventDefault();
 
         sendMessage({
-            action: "pictos__overlay-open-sidepanel",
+            action: "OPEN_SIDEPANEL",
             url: url,
         });
 

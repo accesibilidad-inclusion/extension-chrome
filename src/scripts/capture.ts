@@ -11,7 +11,7 @@ const initializeState = () => {
 };
 
 addListener((request) => {
-    if (request.action === "pictos__update-recording-state") {
+    if (request.action === "UPDATE_RECORDING_STATE") {
         if (request.data.recording !== undefined) {
             recording = request.data.recording;
             setupPopover();
@@ -143,7 +143,7 @@ const handleClick = (event: Event) => {
     const actualTitle = createTitle(el);
     console.log("Sending screenshot message from capture.ts", Date.now());
     sendMessage({
-        action: "pictos__take-screenshot",
+        action: "CAPTURE_SCREENSHOT",
         data: {
             screenshotData: {
                 screenX: rect.left + rect.width / 2,
