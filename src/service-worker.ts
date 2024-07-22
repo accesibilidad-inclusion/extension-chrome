@@ -2,11 +2,11 @@
 
 import { checkAvailableAid } from "@/scripts/check-available-aids";
 import type {
-    PictosAction,
-    PictosActionUrl,
-    PictosActionScreenshot,
-    PictosActionEditor,
     Guide,
+    PictosAction,
+    UrlAction,
+    ScreenshotAction,
+    EditorAction,
 } from "@/scripts/types";
 import { sendMessage } from "@/scripts/types";
 import { reactive, watch } from "vue";
@@ -94,7 +94,7 @@ const onShowAidsAvailableIcon = async (sender: chrome.runtime.MessageSender) => 
     });
 };
 
-const onOverlayOpenSidepanel = (action: PictosActionUrl, sender: chrome.runtime.MessageSender) => {
+const onOverlayOpenSidepanel = (action: UrlAction, sender: chrome.runtime.MessageSender) => {
     if (!sender.tab) {
         console.error("tabId incorrecto!");
         return;
@@ -115,10 +115,7 @@ const onOverlayOpenSidepanel = (action: PictosActionUrl, sender: chrome.runtime.
         });
 };
 
-const onTakeScreenshot = async (
-    action: PictosActionScreenshot,
-    sender: chrome.runtime.MessageSender,
-) => {
+const onTakeScreenshot = async (action: ScreenshotAction, sender: chrome.runtime.MessageSender) => {
     if (!sender.tab) {
         console.error("tabId incorrecto!");
         return;
@@ -137,7 +134,7 @@ const onTakeScreenshot = async (
     });
 };
 
-const onOpenEditor = (action: PictosActionEditor) => {
+const onOpenEditor = (action: EditorAction) => {
     editorTabId = action.data.tabId;
     guide = action.data.guide;
 

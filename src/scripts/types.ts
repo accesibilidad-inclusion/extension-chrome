@@ -1,19 +1,21 @@
-export interface Guide {
+// Base interfaces
+interface Guide {
     title: string;
     steps: Step[];
 }
 
-export interface Step {
+interface Step {
     title: string;
     description: string;
-    elementType: string; // e.g., 'button', 'div', 'a'
+    elementType: string;
     screenshotUrl: string;
     counter: number;
-    screenshotData: PictosScreenshotData;
+    screenshotData: ScreenshotData;
     focusData: FocusData;
 }
 
-export interface PictosScreenshotData {
+// Data interfaces
+interface ScreenshotData {
     screenX: number;
     screenY: number;
     screenElementWidth: number;
@@ -22,51 +24,54 @@ export interface PictosScreenshotData {
     screenHeight: number;
 }
 
-export interface FocusData {
+interface FocusData {
     scaledX: number;
     scaledY: number;
     scaledElementWidth: number;
     scaledElementHeight: number;
 }
 
-export interface PictosActionScreenshot {
+// Action interfaces
+interface BaseAction {
+    action: string;
+}
+
+interface SimpleAction extends BaseAction {
+    action: "pictos__show-aids-available-icon" | "pictos__sidepanel-empty" | "pictos__editor-route";
+}
+
+interface UrlAction extends BaseAction {
+    action: "pictos__overlay-open-sidepanel" | "pictos__sidepanel-show-aid";
+    url: string;
+}
+
+interface ScreenshotAction extends BaseAction {
     action: "pictos__take-screenshot";
     data: {
-        screenshotData: PictosScreenshotData;
+        screenshotData: ScreenshotData;
         title: string;
         elementType: string;
     };
 }
 
-export interface PictosActionSimple {
-    action: "pictos__show-aids-available-icon" | "pictos__sidepanel-empty" | "pictos__editor-route";
-}
-
-export interface PictosActionUrl {
-    action: "pictos__overlay-open-sidepanel" | "pictos__sidepanel-show-aid";
-    url: string;
-}
-
-export interface PictosStep {
-    dataUrl: string;
-    screenshotData: PictosScreenshotData;
-    title: string;
-    elementType: string;
-}
-
-export interface PictosActionStep {
+interface StepAction extends BaseAction {
     action: "pictos__add-step";
-    data: PictosStep;
+    data: {
+        dataUrl: string;
+        screenshotData: ScreenshotData;
+        title: string;
+        elementType: string;
+    };
 }
 
-export interface PictosActionRecordingState {
+interface RecordingStateAction extends BaseAction {
     action: "pictos__update-recording-state";
     data: {
         recording: boolean;
     };
 }
 
-export interface PictosActionEditor {
+interface EditorAction extends BaseAction {
     action: "pictos__open-editor";
     data: {
         tabId?: number;
@@ -74,18 +79,37 @@ export interface PictosActionEditor {
     };
 }
 
-export type PictosAction =
-    | PictosActionSimple
-    | PictosActionUrl
-    | PictosActionScreenshot
-    | PictosActionStep
-    | PictosActionRecordingState
-    | PictosActionEditor;
+// Union type for all actions
+type PictosAction =
+    | SimpleAction
+    | UrlAction
+    | ScreenshotAction
+    | StepAction
+    | RecordingStateAction
+    | EditorAction;
 
-export async function sendMessage(action: PictosAction) {
+// Utility functions
+async function sendMessage(action: PictosAction): Promise<any> {
     return chrome.runtime.sendMessage(action);
 }
 
-export function addListener(callback: (request: PictosAction) => void) {
+function addListener(callback: (request: PictosAction) => void): void {
     chrome.runtime.onMessage.addListener(callback);
 }
+
+// Exports
+export type {
+    Guide,
+    Step,
+    ScreenshotData,
+    FocusData,
+    PictosAction,
+    SimpleAction,
+    UrlAction,
+    ScreenshotAction,
+    StepAction,
+    RecordingStateAction,
+    EditorAction,
+};
+
+export { sendMessage, addListener };
