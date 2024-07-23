@@ -132,6 +132,7 @@ const onTakeScreenshot = async (
                 screenshotData: action.data.screenshotData,
                 title: action.data.title,
                 elementType: action.data.elementType,
+                actionUrl: action.data.actionUrl,
             },
         });
     });

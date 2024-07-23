@@ -6,11 +6,12 @@ export interface Guide {
 export interface Step {
     title: string;
     description: string;
-    elementType: string; // e.g., 'button', 'div', 'a'
+    elementType: string;
     screenshotUrl: string;
     counter: number;
     screenshotData: PictosScreenshotData;
     focusData: FocusData;
+    actionUrl: string; 
 }
 
 export interface PictosScreenshotData {
@@ -35,6 +36,7 @@ export interface PictosActionScreenshot {
         screenshotData: PictosScreenshotData;
         title: string;
         elementType: string;
+        actionUrl: string;
     };
 }
 
@@ -52,6 +54,7 @@ export interface PictosStep {
     screenshotData: PictosScreenshotData;
     title: string;
     elementType: string;
+    actionUrl: string;
 }
 
 export interface PictosActionStep {
