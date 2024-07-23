@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref, watch, onBeforeUnmount } from "vue";
-import type { Guide, Step, FocusData } from "@/scripts/types";
+import { onMounted, ref, watch } from "vue";
+import type { Guide, FocusData } from "@/scripts/types";
 import jsPDF from "jspdf";
 
 const guide = ref<Guide>({
@@ -9,7 +9,33 @@ const guide = ref<Guide>({
 });
 
 const isEditing = ref(false);
+const isDefiningFocus = ref(false);
+const isDragging = ref(false);
+const startX = ref(0);
+const startY = ref(0);
+const currentX = ref(0);
+const currentY = ref(0);
 const currentFocusStep = ref<number | null>(null);
+
+const toggleEditing = () => {
+    if (isEditing.value) {
+        // Si estamos saliendo del modo de edición, guardamos los cambios
+        saveGuideToLocalStorage();
+    }
+    isEditing.value = !isEditing.value;
+};
+
+onMounted(() => {
+    const savedGuide = localStorage.getItem("pictos_guide");
+    if (savedGuide) {
+        guide.value = JSON.parse(savedGuide);
+    }
+});
+
+watch(() => guide.value.steps, () => {
+    saveGuideToLocalStorage();
+}, { deep: true });
+
 
 const saveGuideToLocalStorage = () => {
     localStorage.setItem("pictos_guide", JSON.stringify(guide.value));
@@ -78,6 +104,15 @@ const uploadImage = (event: Event, index: number) => {
                     guide.value.steps[index].screenshotUrl = e.target?.result as string;
                     guide.value.steps[index].screenshotData.screenWidth = img.width;
                     guide.value.steps[index].screenshotData.screenHeight = img.height;
+
+                    // Inicializar el focusData con valores que indican que no hay enfoque
+                    guide.value.steps[index].focusData = {
+                        scaledX: 0,
+                        scaledY: 0,
+                        scaledElementWidth: 0,
+                        scaledElementHeight: 0,
+                    };
+
                     saveGuideToLocalStorage();
                 };
                 img.src = e.target?.result as string;
@@ -94,14 +129,115 @@ const editActionUrl = (index: number, url: string) => {
     }
 };
 
-onMounted(() => {
-    const savedGuide = localStorage.getItem("pictos_guide");
-    if (savedGuide) {
-        guide.value = JSON.parse(savedGuide);
+
+
+
+const selectionRect = ref({ left: 0, top: 0, width: 0, height: 0 });
+
+const toggleDefiningFocus = (index: number) => {
+    isDefiningFocus.value = !isDefiningFocus.value;
+    currentFocusStep.value = isDefiningFocus.value ? index : null;
+    isDragging.value = false;
+    startX.value = 0;
+    startY.value = 0;
+    currentX.value = 0;
+    currentY.value = 0;
+    selectionRect.value = { left: 0, top: 0, width: 0, height: 0 };
+
+    // Limpiar el enfoque existente al comenzar a definir uno nuevo
+    if (isDefiningFocus.value && guide.value.steps[index]) {
+        guide.value.steps[index].focusData = {
+            scaledX: 0,
+            scaledY: 0,
+            scaledElementWidth: 0,
+            scaledElementHeight: 0,
+        };
     }
-});
 
+};
 
+const startDefiningFocus = (event: MouseEvent, index: number) => {
+    if (isDefiningFocus.value && currentFocusStep.value === index) {
+        isDragging.value = true;
+        const rect = (event.target as HTMLElement).getBoundingClientRect();
+        startX.value = event.clientX - rect.left;
+        startY.value = event.clientY - rect.top;
+        currentX.value = startX.value;
+        currentY.value = startY.value;
+        updateSelectionRect();
+        event.preventDefault();
+    }
+};
+
+const updateFocus = (event: MouseEvent) => {
+    if (isDragging.value && currentFocusStep.value !== null) {
+        const rect = (event.target as HTMLElement).getBoundingClientRect();
+        currentX.value = event.clientX - rect.left;
+        currentY.value = event.clientY - rect.top;
+        updateSelectionRect();
+        event.preventDefault();
+    }
+};
+
+const updateSelectionRect = () => {
+    selectionRect.value = {
+        left: Math.min(startX.value, currentX.value),
+        top: Math.min(startY.value, currentY.value),
+        width: Math.abs(currentX.value - startX.value),
+        height: Math.abs(currentY.value - startY.value)
+    };
+};
+
+const finishDefiningFocus = (event: MouseEvent) => {
+    if (isDragging.value && currentFocusStep.value !== null) {
+        const step = guide.value.steps[currentFocusStep.value];
+        const img = event.target as HTMLImageElement;
+
+        const left = Math.min(startX.value, currentX.value);
+        const top = Math.min(startY.value, currentY.value);
+        const width = Math.abs(currentX.value - startX.value);
+        const height = Math.abs(currentY.value - startY.value);
+
+        if (width > 0 && height > 0) {
+            const naturalX = (left * img.naturalWidth) / img.width;
+            const naturalY = (top * img.naturalHeight) / img.height;
+            const elementNaturalWidth = (width * img.naturalWidth) / img.width;
+            const elementNaturalHeight = (height * img.naturalHeight) / img.height;
+
+            // Usa el operador de propagación para asegurarte de que Vue detecte el cambio
+            guide.value.steps[currentFocusStep.value] = {
+                ...step,
+                focusData: {
+                    scaledX: (naturalX * img.width) / img.naturalWidth + width / 2,
+                    scaledY: (naturalY * img.height) / img.naturalHeight + height / 2,
+                    scaledElementWidth: (elementNaturalWidth * img.width) / img.naturalWidth,
+                    scaledElementHeight: (elementNaturalHeight * img.height) / img.naturalHeight,
+                }
+            };
+            // Guarda inmediatamente después de definir el foco
+            saveGuideToLocalStorage();
+        } else {
+            console.error("Invalid width or height:", width, height);
+        }
+
+        isDragging.value = false;
+        isDefiningFocus.value = false;
+        currentFocusStep.value = null;
+        selectionRect.value = { left: 0, top: 0, width: 0, height: 0 };
+    }
+};
+
+const clearFocus = (index: number) => {
+    if (guide.value.steps[index]) {
+        guide.value.steps[index].focusData = {
+            scaledX: 0,
+            scaledY: 0,
+            scaledElementWidth: 0,
+            scaledElementHeight: 0,
+        };
+        saveGuideToLocalStorage();
+    }
+};
 
 
 watch(guide, saveGuideToLocalStorage, { deep: true });
@@ -152,19 +288,16 @@ const downloadGuide = async () => {
 const onImageLoad = (event: Event, index: number) => {
     const img = event.target as HTMLImageElement;
     const step = guide.value.steps[index];
-
     const naturalX =
         (step.screenshotData.screenX * img.naturalWidth) / step.screenshotData.screenWidth;
     const naturalY =
         (step.screenshotData.screenY * img.naturalHeight) / step.screenshotData.screenHeight;
-
     const elementNaturalWidth =
         (step.screenshotData.screenElementWidth * img.naturalWidth) /
         step.screenshotData.screenWidth;
     const elementNaturalHeight =
         (step.screenshotData.screenElementHeight * img.naturalHeight) /
         step.screenshotData.screenHeight;
-
     step.focusData = {
         scaledX: (naturalX * img.width) / img.naturalWidth,
         scaledY: (naturalY * img.height) / img.naturalHeight,
@@ -174,14 +307,13 @@ const onImageLoad = (event: Event, index: number) => {
 };
 
 const cutoutStyle = (data: FocusData) => {
+    if (!data || (data.scaledElementWidth <= 0 && data.scaledElementHeight <= 0)) return {};
     const radius = Math.max(data.scaledElementWidth, data.scaledElementHeight) / 2 + 0.5;
     return {
         "mask-image": `radial-gradient(circle at ${data.scaledX}px ${data.scaledY}px, transparent ${radius}px, black ${radius}px)`,
         "-webkit-mask-image": `radial-gradient(circle at ${data.scaledX}px ${data.scaledY}px, transparent ${radius}px, black ${radius}px)`,
     };
 };
-
-
 
 </script>
 
@@ -191,7 +323,7 @@ const cutoutStyle = (data: FocusData) => {
         <div class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-semibold">Editor de pasos</h1>
             <div class="flex gap-2">
-                <button @click="isEditing = !isEditing" class="px-5 py-2 text-white rounded flex items-center gap-2"
+                <button @click="toggleEditing" class="px-5 py-2 text-white rounded flex items-center gap-2"
                     :class="[isEditing ? 'bg-red-500' : 'bg-blue-500']">
                     <img src="/assets/edit.svg" alt="edit-icon" class="w-4 h-4" />
                     <span>{{ isEditing ? "Dejar de editar" : "Editar" }}</span>
@@ -225,25 +357,47 @@ const cutoutStyle = (data: FocusData) => {
                         class="text-base p-1 border rounded w-full" />
                     <p v-else class="text-base">{{ step.description }}</p>
                 </div>
-                <div v-if="isEditing">
-                    <input v-model="step.actionUrl" class="mb-4 text-sm" />
-                    <button @click="isEditing = false">Guardar</button>
+                <div v-if="isEditing" class="mt-2">
+                    <label for="actionUrl" class="block text-sm font-medium text-gray-700">URL de acción</label>
+                    <input id="actionUrl" v-model="step.actionUrl" @blur="editActionUrl(index, step.actionUrl)"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                        placeholder="Ingrese la URL de acción" />
                 </div>
                 <div v-else>
                     <p v-if="step.actionUrl" class="mb-4 text-sm text-blue-600">
                         <a :href="step.actionUrl" target="_blank">{{ step.actionUrl }}</a>
-                        <button @click="isEditing = true">Editar</button>
                     </p>
                     <p v-else class="mb-4 text-sm text-red-600">
                         No se capturó URL de acción
-                        <button @click="isEditing = true">Agregar</button>
                     </p>
                 </div>
+                <div v-if="isEditing" class="flex flex-col gap-2 mt-2">
+                    <button @click="toggleDefiningFocus(index)" class="bg-blue-500 text-white px-3 py-1 rounded">
+                        {{ isDefiningFocus ? "Cancelar definición de enfoque" : "Definir enfoque" }}
+                    </button>
+                    <button @click="clearFocus(index)" class="bg-gray-500 text-white px-3 py-1 rounded">
+                        Eliminar Enfoque
+                    </button>
+                </div>
                 <div class="relative">
-                    <img :src="step.screenshotUrl" class="w-full h-auto" :alt="step.description"
-                        @load="onImageLoad($event, index)" />
-                    <div v-if="step.focusData" class="absolute z-10 top-0 left-0 w-full h-full bg-black bg-opacity-50"
+                    <img :id="'step-image-' + index" :src="step.screenshotUrl" @load="onImageLoad($event, index)"
+                        @mousedown="startDefiningFocus($event, index)" @mousemove="updateFocus"
+                        @mouseup="finishDefiningFocus" @mouseleave="finishDefiningFocus" class="w-full"
+                        :style="{ cursor: isDefiningFocus && currentFocusStep === index ? 'crosshair' : 'default' }" />
+
+                    <!-- Área de enfoque -->
+                    <div v-if="step.focusData && (step.focusData.scaledElementWidth > 0 || step.focusData.scaledElementHeight > 0)"
+                        class="absolute z-10 top-0 left-0 w-full h-full bg-black bg-opacity-50"
                         :style="cutoutStyle(step.focusData)"></div>
+
+                    <!-- Rectángulo de selección durante la definición del enfoque -->
+                    <div v-if="isEditing && isDefiningFocus && currentFocusStep === index"
+                        class="focus-selection absolute" :style="{
+                            left: `${selectionRect.left}px`,
+                            top: `${selectionRect.top}px`,
+                            width: `${selectionRect.width}px`,
+                            height: `${selectionRect.height}px`,
+                        }"></div>
                 </div>
                 <div v-if="isEditing" class="flex flex-col gap-2 mt-2">
                     <input type="file" @change="uploadImage($event, index)" class="block w-full text-sm text-gray-500
@@ -269,3 +423,11 @@ const cutoutStyle = (data: FocusData) => {
             Paso</button>
     </div>
 </template>
+<style scoped>
+.focus-selection {
+    position: absolute;
+    border: 2px solid blue;
+    background-color: rgba(0, 0, 255, 0.2);
+    pointer-events: none;
+}
+</style>
