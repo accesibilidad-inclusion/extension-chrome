@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
-import type { Guide, Step } from "@/scripts/types";
+import { onMounted, ref, watch, onBeforeUnmount } from "vue";
+import type { Guide, Step, FocusData } from "@/scripts/types";
 import jsPDF from "jspdf";
 
 const guide = ref<Guide>({
@@ -9,6 +9,7 @@ const guide = ref<Guide>({
 });
 
 const isEditing = ref(false);
+const currentFocusStep = ref<number | null>(null);
 
 const saveGuideToLocalStorage = () => {
     localStorage.setItem("pictos_guide", JSON.stringify(guide.value));
@@ -39,7 +40,7 @@ const addStep = () => {
         description: '',
         elementType: '',
         screenshotUrl: '',
-        counter: 0,
+        counter: guide.value.steps.length + 1,
         screenshotData: {
             screenX: 0,
             screenY: 0,
@@ -54,6 +55,7 @@ const addStep = () => {
             scaledElementWidth: 0,
             scaledElementHeight: 0,
         },
+        actionUrl: '', // Nuevo campo para almacenar la URL de la acción
     });
     saveGuideToLocalStorage();
 };
@@ -74,6 +76,8 @@ const uploadImage = (event: Event, index: number) => {
                     guide.value.steps[index].screenshotData.screenElementWidth = img.width;
                     guide.value.steps[index].screenshotData.screenElementHeight = img.height;
                     guide.value.steps[index].screenshotUrl = e.target?.result as string;
+                    guide.value.steps[index].screenshotData.screenWidth = img.width;
+                    guide.value.steps[index].screenshotData.screenHeight = img.height;
                     saveGuideToLocalStorage();
                 };
                 img.src = e.target?.result as string;
@@ -83,12 +87,22 @@ const uploadImage = (event: Event, index: number) => {
     }
 };
 
+const editActionUrl = (index: number, url: string) => {
+    if (guide.value.steps[index]) {
+        guide.value.steps[index].actionUrl = url;
+        saveGuideToLocalStorage();
+    }
+};
+
 onMounted(() => {
     const savedGuide = localStorage.getItem("pictos_guide");
     if (savedGuide) {
         guide.value = JSON.parse(savedGuide);
     }
 });
+
+
+
 
 watch(guide, saveGuideToLocalStorage, { deep: true });
 
@@ -134,7 +148,43 @@ const downloadGuide = async () => {
 
     pdf.save(`${guide.value.title}.pdf`);
 };
+
+const onImageLoad = (event: Event, index: number) => {
+    const img = event.target as HTMLImageElement;
+    const step = guide.value.steps[index];
+
+    const naturalX =
+        (step.screenshotData.screenX * img.naturalWidth) / step.screenshotData.screenWidth;
+    const naturalY =
+        (step.screenshotData.screenY * img.naturalHeight) / step.screenshotData.screenHeight;
+
+    const elementNaturalWidth =
+        (step.screenshotData.screenElementWidth * img.naturalWidth) /
+        step.screenshotData.screenWidth;
+    const elementNaturalHeight =
+        (step.screenshotData.screenElementHeight * img.naturalHeight) /
+        step.screenshotData.screenHeight;
+
+    step.focusData = {
+        scaledX: (naturalX * img.width) / img.naturalWidth,
+        scaledY: (naturalY * img.height) / img.naturalHeight,
+        scaledElementWidth: (elementNaturalWidth * img.width) / img.naturalWidth,
+        scaledElementHeight: (elementNaturalHeight * img.height) / img.naturalHeight,
+    };
+};
+
+const cutoutStyle = (data: FocusData) => {
+    const radius = Math.max(data.scaledElementWidth, data.scaledElementHeight) / 2 + 0.5;
+    return {
+        "mask-image": `radial-gradient(circle at ${data.scaledX}px ${data.scaledY}px, transparent ${radius}px, black ${radius}px)`,
+        "-webkit-mask-image": `radial-gradient(circle at ${data.scaledX}px ${data.scaledY}px, transparent ${radius}px, black ${radius}px)`,
+    };
+};
+
+
+
 </script>
+
 
 <template>
     <div class="max-w-2xl mx-auto my-12" id="guide-content">
@@ -175,8 +225,26 @@ const downloadGuide = async () => {
                         class="text-base p-1 border rounded w-full" />
                     <p v-else class="text-base">{{ step.description }}</p>
                 </div>
-                <img :id="`step-image-${index}`" :src="step.screenshotUrl" class="w-full h-auto rounded border"
-                    :alt="step.title" />
+                <div v-if="isEditing">
+                    <input v-model="step.actionUrl" class="mb-4 text-sm" />
+                    <button @click="isEditing = false">Guardar</button>
+                </div>
+                <div v-else>
+                    <p v-if="step.actionUrl" class="mb-4 text-sm text-blue-600">
+                        <a :href="step.actionUrl" target="_blank">{{ step.actionUrl }}</a>
+                        <button @click="isEditing = true">Editar</button>
+                    </p>
+                    <p v-else class="mb-4 text-sm text-red-600">
+                        No se capturó URL de acción
+                        <button @click="isEditing = true">Agregar</button>
+                    </p>
+                </div>
+                <div class="relative">
+                    <img :src="step.screenshotUrl" class="w-full h-auto" :alt="step.description"
+                        @load="onImageLoad($event, index)" />
+                    <div v-if="step.focusData" class="absolute z-10 top-0 left-0 w-full h-full bg-black bg-opacity-50"
+                        :style="cutoutStyle(step.focusData)"></div>
+                </div>
                 <div v-if="isEditing" class="flex flex-col gap-2 mt-2">
                     <input type="file" @change="uploadImage($event, index)" class="block w-full text-sm text-gray-500
                                file:mr-4 file:py-2 file:px-4
@@ -184,6 +252,14 @@ const downloadGuide = async () => {
                                file:text-sm file:font-semibold
                                file:bg-blue-50 file:text-blue-700
                                hover:file:bg-blue-100" />
+                    <div v-if="currentFocusStep === index" class="flex gap-2">
+                        <input type="number" :value="Math.round(step.focusData.scaledElementWidth)"
+                            class="w-20 p-1 border rounded" placeholder="Width" />
+                        <input type="number" :value="Math.round(step.focusData.scaledElementHeight)"
+                            class="w-20 p-1 border rounded" placeholder="Height" />
+                    </div>
+                    <input v-model="step.actionUrl" @blur="editActionUrl(index, step.actionUrl)"
+                        class="p-1 border rounded w-full" placeholder="URL de la acción" />
                     <button @click="removeStep(index)" class="px-4 py-2 bg-red-500 text-white rounded">Eliminar
                         Paso</button>
                 </div>

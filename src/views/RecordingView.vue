@@ -12,6 +12,7 @@ const guide = ref<Guide>({
 const saveGuideToLocalStorage = () => {
     localStorage.setItem("pictos_guide", JSON.stringify(guide.value));
 };
+watch(() => JSON.parse(JSON.stringify(guide.value)), saveGuideToLocalStorage, { deep: true });
 
 onMounted(() => {
     const savedGuide = localStorage.getItem("pictos_guide");
@@ -33,12 +34,13 @@ addListener((request) => {
 });
 
 const addStep = (data: PictosStep) => {
+
     const newStep: Step = {
         screenshotUrl: data.dataUrl,
         counter: guide.value.steps.length + 1,
         screenshotData: data.screenshotData,
         title: data.title,
-        description: "Descripción del paso", // Default description
+        description: "Descripción del paso",
         elementType: data.elementType,
         focusData: {
             scaledX: 0,
@@ -46,13 +48,12 @@ const addStep = (data: PictosStep) => {
             scaledElementWidth: 0,
             scaledElementHeight: 0,
         },
+        actionUrl: data.actionUrl,
     };
 
-    console.log(newStep);
 
     guide.value.steps.push(newStep);
 
-    // scroll to the bottom with a smooth animation
     nextTick(() => {
         const container = document.querySelector("#screenshots-container");
         if (container) {
@@ -93,11 +94,6 @@ const onImageLoad = (event: Event, index: number) => {
         scaledElementWidth: (elementNaturalWidth * img.width) / img.naturalWidth,
         scaledElementHeight: (elementNaturalHeight * img.height) / img.naturalHeight,
     };
-
-    console.log(`Current Img: ${img.width}, ${img.height}`);
-    console.log(`Real Img: ${img.naturalWidth}, ${img.naturalHeight}`);
-    console.log(`Screen: ${step.screenshotData.screenWidth}, ${step.screenshotData.screenHeight}`);
-    console.log(step.screenshotData);
 };
 
 const cutoutStyle = (data: FocusData) => {
@@ -119,6 +115,7 @@ const openEditor = () => {
         });
     });
 };
+
 </script>
 
 <template>
@@ -132,47 +129,36 @@ const openEditor = () => {
             <li v-for="(step, index) in guide.steps" :key="index">
                 <p class="text-xl mb-2">Paso {{ step.counter }}</p>
                 <p class="text-lg font-semibold mb-2">{{ step.title }}</p>
-                <p class="mb-4">{{ step.description }}</p>
+                <p class="mb-2">{{ step.description }}</p>
+                <div>
+                    <p v-if="step.actionUrl" class="mb-4 text-sm text-blue-600">
+                        <a :href="step.actionUrl" target="_blank">{{ step.actionUrl }}</a>
+                    </p>
+                    <p v-else class="mb-4 text-sm text-red-600">
+                        No se capturó URL de acción
+                    </p>
+                </div>
                 <div class="relative">
-                    <img
-                        :src="step.screenshotUrl"
-                        class="w-full h-auto"
-                        :alt="step.description"
-                        @load="onImageLoad($event, index)"
-                    />
-                    <div
-                        v-if="step.focusData"
-                        class="absolute z-10 top-0 left-0 w-full h-full bg-black bg-opacity-50"
-                        :style="cutoutStyle(step.focusData)"
-                    ></div>
+                    <img :src="step.screenshotUrl" class="w-full h-auto" :alt="step.description"
+                        @load="onImageLoad($event, index)" />
+                    <div v-if="step.focusData" class="absolute z-10 top-0 left-0 w-full h-full bg-black bg-opacity-50"
+                        :style="cutoutStyle(step.focusData)"></div>
                 </div>
             </li>
         </ul>
         <div class="flex gap-2 justify-center mt-5">
-            <button
-                v-if="!state.recording"
-                @click="startRecording"
-                class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
-            >
+            <button v-if="!state.recording" @click="startRecording"
+                class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
                 Iniciar grabación
             </button>
-            <button
-                v-if="state.recording"
-                @click="stopRecording"
-                class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
-            >
+            <button v-if="state.recording" @click="stopRecording"
+                class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600">
                 Detener grabación
             </button>
-            <button
-                @click="openEditor"
-                class="bg-pink-600 text-white py-2 px-4 rounded hover:bg-pink-900"
-            >
+            <button @click="openEditor" class="bg-pink-600 text-white py-2 px-4 rounded hover:bg-pink-900">
                 Editar
             </button>
-            <button
-                @click="clearSteps"
-                class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-            >
+            <button @click="clearSteps" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
                 Limpiar pasos
             </button>
         </div>
