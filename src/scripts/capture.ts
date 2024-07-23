@@ -165,7 +165,7 @@ const handleClick = (event: Event) => {
  */
 const getInteractiveElements = (): Element[] => {
     const interactiveTags = ["a", "button", "input", "select", "textarea"];
-    const interactiveRoles = ["button", "link"];
+    const interactiveRoles = ["button", "link", "checkbox", "radio", "menuitem", "tab", "listbox"];
     const elements = new Set<Element>();
 
     // Get elements by interactive tags
@@ -184,11 +184,9 @@ const getInteractiveElements = (): Element[] => {
             if (
                 el.hasAttribute("onclick") ||
                 el.hasAttribute("onmouseover") ||
-                el.hasAttribute("onfocus")
+                el.hasAttribute("onfocus") ||
+                el.hasAttribute("tabindex")
             ) {
-                elements.add(el);
-            }
-            if (el.hasAttribute("tabindex")) {
                 elements.add(el);
             }
         }
