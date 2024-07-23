@@ -2,6 +2,7 @@ import { sendMessage, addListener } from "@/scripts/types";
 
 let recording = false;
 let popover: HTMLDivElement | null = null;
+let observer: MutationObserver | null = null;
 
 const initializeState = () => {
     chrome.storage.local.get(["recording"], (result) => {
@@ -19,11 +20,6 @@ addListener((request) => {
     }
 });
 
-/**
- * Create a description for the element
- * @param {Element} el - The element to create a description for
- * @returns {string} The description of the element
- */
 const createTitle = (el: Element): string => {
     const tagName = el.tagName.toLowerCase();
     const textContent = el.textContent?.trim() || "";
@@ -102,6 +98,33 @@ const setupPopover = () => {
     document.head.appendChild(style);
 
     setupInteractiveElements();
+    setupMutationObserver();
+};
+
+const setupMutationObserver = () => {
+    if (observer) {
+        observer.disconnect();
+    }
+
+    observer = new MutationObserver((mutations) => {
+        let shouldUpdate = false;
+        for (const mutation of mutations) {
+            if (mutation.type === "childList" || mutation.type === "attributes") {
+                shouldUpdate = true;
+                break;
+            }
+        }
+        if (shouldUpdate) {
+            setupInteractiveElements();
+        }
+    });
+
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["onclick", "onmouseover", "onfocus", "tabindex"],
+    });
 };
 
 const setupInteractiveElements = () => {
@@ -159,10 +182,6 @@ const handleClick = (event: Event) => {
     });
 };
 
-/**
- * Get interactive elements from the DOM
- * @returns {Element[]} List of interactive elements
- */
 const getInteractiveElements = (): Element[] => {
     const interactiveTags = ["a", "button", "input", "select", "textarea"];
     const interactiveRoles = ["button", "link", "checkbox", "radio", "menuitem", "tab", "listbox"];
@@ -178,7 +197,7 @@ const getInteractiveElements = (): Element[] => {
         document.querySelectorAll(`[role="${role}"]`).forEach((el) => elements.add(el));
     });
 
-    // Get elements with event attributes
+    // Get elements with event attributes or tabindex
     document.querySelectorAll("*").forEach((el) => {
         if (el instanceof HTMLElement) {
             if (
@@ -195,5 +214,9 @@ const getInteractiveElements = (): Element[] => {
     return Array.from(elements);
 };
 
-initializeState();
-setupPopover();
+const initialize = () => {
+    initializeState();
+    setupPopover();
+};
+
+initialize();
