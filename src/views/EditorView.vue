@@ -319,111 +319,170 @@ const cutoutStyle = (data: FocusData) => {
 
 
 <template>
-    <div class="max-w-2xl mx-auto my-12" id="guide-content">
-        <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-semibold">Editor de pasos</h1>
-            <div class="flex gap-2">
-                <button @click="toggleEditing" class="px-5 py-2 text-white rounded flex items-center gap-2"
-                    :class="[isEditing ? 'bg-red-500' : 'bg-blue-500']">
-                    <img src="/assets/edit.svg" alt="edit-icon" class="w-4 h-4" />
-                    <span>{{ isEditing ? "Dejar de editar" : "Editar" }}</span>
-                </button>
-                <button @click="downloadGuide"
-                    class="px-5 py-2 bg-yellow-500 text-white rounded flex items-center gap-2">
-                    <!-- <img src="/assets/download.svg" alt="download-icon" class="w-4 h-4" /> -->
-                    <span>Descargar guía</span>
-                </button>
+    <div class="bg-light-blue">
+
+        <div class="max-w-4xl  mx-auto py-12" id="guide-content">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-3xl font-semibold">Editor de guía</h1>
+                <div class="flex gap-2">
+                    <button @click="toggleEditing" class="button text-white text-base "
+                        :class="[isEditing ? 'bg-[#041C42]' : 'bg-[#004079]']">
+                        <img src="/assets/edit.svg" alt="edit-icon" class="w-4 h-4 mr-2" />
+                        <span>{{ isEditing ? "Dejar de editar" : "Editar" }}</span>
+                    </button>
+                    <button @click="downloadGuide"
+                        class="button text-[#041C42] bg-white outline outline-1 text-base  outline-[#041C42] ">
+
+                        <span>Descargar guía</span>
+                    </button>
+                </div>
             </div>
-        </div>
 
-        <div class="mb-6">
-            <input v-if="isEditing" v-model="guide.title" @blur="editGuideTitle(guide.title)"
-                class="text-2xl font-bold p-2 border rounded w-full" />
-            <h2 v-else class="text-2xl font-bold">{{ guide.title }}</h2>
-        </div>
+            <div class="mb-6">
+                <div v-if="isEditing" class="flex flex-col gap-2">
+                    <label class="text-base font-semibold text-[#041C42]">Título de la guía</label>
+                    <input v-model="guide.title" @blur="editGuideTitle(guide.title)"
+                        class="text-2xl font-bold input-edit focus:ring-0  w-full" />
+                </div>
+                <h2 v-else class="text-2xl font-bold">{{ guide.title }}</h2>
+            </div>
 
-        <ul class="mt-4 flex flex-col gap-8" id="screenshots-container">
-            <li v-for="(step, index) in guide.steps" :key="index">
-                <div class="flex items-center gap-4 mb-2">
-                    <div class="w-9 h-9 rounded-full bg-gray-200 flex justify-center items-center">
-                        <span class="text-lg">{{ index + 1 }}</span>
+            <ul class="mt-4 flex flex-col gap-8" id="screenshots-container">
+                <li v-for="(step, index) in guide.steps" :key="index"
+                    class="bg-dark-blue outline outline-1 outline-[#041C42] rounded p-6 mb-6"
+                    style="border-radius: 20px;">
+                    <div class="flex items-center gap-4 mb-2">
+                        <div
+                            class="w-9 h-9 rounded-full bg-white outline outline-1 outline-[#041C42] flex justify-center items-center">
+                            <span class="text-lg">{{ index + 1 }}</span>
+                        </div>
+                        <div v-if="isEditing" class="flex flex-col gap-2 w-full">
+                            <label class="text-base font-semibold text-[#041C42]">Título del
+                                paso</label>
+                            <input v-model="step.title" @blur="editStepTitle(index, step.title)"
+                                class="input-edit text-lg focus:ring-0 w-full mb-2" />
+                        </div>
+                        <p v-else class="text-lg  font-medium">{{ step.title }}</p>
                     </div>
-                    <input v-if="isEditing" v-model="step.title" @blur="editStepTitle(index, step.title)"
-                        class="text-lg font-medium p-1 border rounded flex-grow" />
-                    <p v-else class="text-lg font-medium">{{ step.title }}</p>
-                </div>
-                <div class="mb-5">
-                    <input v-if="isEditing" v-model="step.description" @blur="editDescription(index, step.description)"
-                        class="text-base p-1 border rounded w-full" />
-                    <p v-else class="text-base">{{ step.description }}</p>
-                </div>
-                <div v-if="isEditing" class="mt-2">
-                    <label for="actionUrl" class="block text-sm font-medium text-gray-700">URL de acción</label>
-                    <input id="actionUrl" v-model="step.actionUrl" @blur="editActionUrl(index, step.actionUrl)"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                        placeholder="Ingrese la URL de acción" />
-                </div>
-                <div v-else>
-                    <p v-if="step.actionUrl" class="mb-4 text-sm text-blue-600">
-                        <a :href="step.actionUrl" target="_blank">{{ step.actionUrl }}</a>
-                    </p>
-                    <p v-else class="mb-4 text-sm text-red-600">
-                        No se capturó URL de acción
-                    </p>
-                </div>
-                <div v-if="isEditing" class="flex flex-col gap-2 mt-2">
-                    <button @click="toggleDefiningFocus(index)" class="bg-blue-500 text-white px-3 py-1 rounded">
-                        {{ isDefiningFocus ? "Cancelar definición de enfoque" : "Definir enfoque" }}
-                    </button>
-                    <button @click="clearFocus(index)" class="bg-gray-500 text-white px-3 py-1 rounded">
-                        Eliminar Enfoque
-                    </button>
-                </div>
-                <div class="relative">
-                    <img :id="'step-image-' + index" :src="step.screenshotUrl" @load="onImageLoad($event, index)"
-                        @mousedown="startDefiningFocus($event, index)" @mousemove="updateFocus"
-                        @mouseup="finishDefiningFocus" @mouseleave="finishDefiningFocus" class="w-full"
-                        :style="{ cursor: isDefiningFocus && currentFocusStep === index ? 'crosshair' : 'default' }" />
-
-                    <!-- Área de enfoque -->
-                    <div v-if="step.focusData && (step.focusData.scaledElementWidth > 0 || step.focusData.scaledElementHeight > 0)"
-                        class="absolute z-10 top-0 left-0 w-full h-full bg-black bg-opacity-50"
-                        :style="cutoutStyle(step.focusData)"></div>
-
-                    <!-- Rectángulo de selección durante la definición del enfoque -->
-                    <div v-if="isEditing && isDefiningFocus && currentFocusStep === index"
-                        class="focus-selection absolute" :style="{
-                            left: `${selectionRect.left}px`,
-                            top: `${selectionRect.top}px`,
-                            width: `${selectionRect.width}px`,
-                            height: `${selectionRect.height}px`,
-                        }"></div>
-                </div>
-                <div v-if="isEditing" class="flex flex-col gap-2 mt-2">
-                    <input type="file" @change="uploadImage($event, index)" class="block w-full text-sm text-gray-500
-                               file:mr-4 file:py-2 file:px-4
-                               file:rounded-full file:border-0
-                               file:text-sm file:font-semibold
-                               file:bg-blue-50 file:text-blue-700
-                               hover:file:bg-blue-100" />
-                    <div v-if="currentFocusStep === index" class="flex gap-2">
-                        <input type="number" :value="Math.round(step.focusData.scaledElementWidth)"
-                            class="w-20 p-1 border rounded" placeholder="Width" />
-                        <input type="number" :value="Math.round(step.focusData.scaledElementHeight)"
-                            class="w-20 p-1 border rounded" placeholder="Height" />
+                    <div class="mb-5">
+                        <div v-if="isEditing" class="flex flex-col gap-2">
+                            <label class="text-base font-semibold text-[#041C42]">Descripción del
+                                paso</label>
+                            <input v-model="step.description" @blur="editDescription(index, step.description)"
+                                class="text-base input-edit focus:ring-0 w-full" />
+                        </div>
+                        <p v-else class="text-base">{{ step.description }}</p>
                     </div>
-                    <input v-model="step.actionUrl" @blur="editActionUrl(index, step.actionUrl)"
-                        class="p-1 border rounded w-full" placeholder="URL de la acción" />
-                    <button @click="removeStep(index)" class="px-4 py-2 bg-red-500 text-white rounded">Eliminar
-                        Paso</button>
-                </div>
-            </li>
-        </ul>
-        <button v-if="isEditing" @click="addStep" class="mt-4 px-4 py-2 bg-green-500 text-white rounded">Agregar
-            Paso</button>
+                    <div v-if="isEditing" class="flex flex-col gap-2">
+                        <label class="text-base font-semibold text-[#041C42]">URL desde donde se
+                            realizó el paso</label>
+                        <input id="actionUrl" v-model="step.actionUrl" @blur="editActionUrl(index, step.actionUrl)"
+                            class="mt-1 input-edit focus:ring-0 w-full" />
+                    </div>
+                    <div v-else class="my-5 ">
+                        <a v-if="step.actionUrl" :href="step.actionUrl" target="_blank"
+                            class="justify-center items-center gap-3 button !inline-flex bg-light-blue hover:bg-dark-blue text-[#041C42] outline outline-1 text-sm outline-[#041C42]">
+
+                            <img src="/assets/link-externo.svg" alt="download-icon" class="w-4 h-4" />
+                            <span>
+                                Ir a sitio web
+                            </span>
+
+                        </a>
+                        <p v-else class="mb-4 text-sm bg-[#041C42]/10 text-[#041C42]/50 button !inline-flex">
+                            No se capturó URL de acción realizada
+                        </p>
+                    </div>
+                    <div v-if="isEditing" class="flex gap-2 mt-6 w-full  mb-3">
+                        <button @click="toggleDefiningFocus(index)" class="button text-white text-sm bg-[#004079]">
+                            {{ isDefiningFocus ? "Cancelar definición de enfoque" : "Definir enfoque" }}
+                        </button>
+                        <button @click="clearFocus(index)"
+                            class="button text-[#041C42] outline outline-1 text-sm  outline-[#041C42]">
+                            Eliminar Enfoque
+                        </button>
+                    </div>
+                    <div class="relative">
+                        <img :id="'step-image-' + index" :src="step.screenshotUrl" @load="onImageLoad($event, index)"
+                            @mousedown="startDefiningFocus($event, index)" @mousemove="updateFocus"
+                            @mouseup="finishDefiningFocus" @mouseleave="finishDefiningFocus"
+                            class="w-full rounded-2xl max-h-[640px] object-cover"
+                            :style="{ cursor: isDefiningFocus && currentFocusStep === index ? 'crosshair' : 'default' }" />
+
+                        <!-- Área de enfoque -->
+                        <div v-if="step.focusData && (step.focusData.scaledElementWidth > 0 || step.focusData.scaledElementHeight > 0)"
+                            class="absolute z-10 top-0 left-0 w-full h-full bg-black bg-opacity-50 rounded-2xl"
+                            :style="cutoutStyle(step.focusData)"></div>
+
+                        <!-- Rectángulo de selección durante la definición del enfoque -->
+                        <div v-if="isEditing && isDefiningFocus && currentFocusStep === index"
+                            class="focus-selection absolute" :style="{
+                                left: `${selectionRect.left}px`,
+                                top: `${selectionRect.top}px`,
+                                width: `${selectionRect.width}px`,
+                                height: `${selectionRect.height}px`,
+                            }"></div>
+                    </div>
+                    <div v-if="isEditing" class="flex flex-col gap-3 mt-2">
+                        <div class="flex flex-col gap-2 mb-3">
+                            <label class="text-base font-semibold text-[#041C42]">Subir imagen de
+                                paso</label>
+                            <input type="file" @change="uploadImage($event, index)"
+                                class="button text-[#004079] outline outline-1 outline-[#004079]
+                                       file:bg-[#CAE0FF] file:text-[#004079] file:rounded-xl file:outline-1 file:outline-[#00407]" />
+                        </div>
+                        <button @click="removeStep(index)" class="button text-white text-base bg-[#004079] ">Eliminar
+                            Paso</button>
+                    </div>
+                </li>
+            </ul>
+            <button v-if="isEditing" @click="addStep" class=" mt-3 button text-white text-base bg-[#041C42]">Agregar
+                Paso</button>
+        </div>
     </div>
 </template>
 <style scoped>
+.focus-selection {
+    position: absolute;
+    border: 2px solid blue;
+    background-color: rgba(0, 0, 255, 0.2);
+    pointer-events: none;
+}
+
+.app-nav__logo {
+    width: 75px;
+    height: 15px;
+}
+
+.bg-light-blue {
+    background-color: #CAE0FF;
+}
+
+.bg-dark-blue {
+    background-color: #A1C9FF;
+}
+
+.button {
+    padding: 12px 24px;
+    font-weight: 400;
+    border-radius: 9999px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.input-edit {
+    padding: 12px 24px;
+    font-weight: 400;
+    border-radius: 10px;
+    text-align: start;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    outline: 1px solid #041C42;
+}
+
 .focus-selection {
     position: absolute;
     border: 2px solid blue;
