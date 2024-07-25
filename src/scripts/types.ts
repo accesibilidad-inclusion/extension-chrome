@@ -12,6 +12,7 @@ interface Step {
     counter: number;
     screenshotData: ScreenshotData;
     focusData: FocusData;
+    actionUrl: string; 
 }
 
 // Data interfaces
@@ -51,6 +52,7 @@ interface CaptureScreenshotAction extends BaseAction {
         screenshotData: ScreenshotData;
         title: string;
         elementType: string;
+        actionUrl: string;
     };
 }
 
@@ -59,6 +61,7 @@ interface AddStepData {
     screenshotData: ScreenshotData;
     title: string;
     elementType: string;
+    actionUrl: string;
 }
 
 interface AddStepAction extends BaseAction {
