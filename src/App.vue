@@ -5,7 +5,7 @@ import { addListener } from "@/scripts/types";
 const router = useRouter();
 
 addListener((request) => {
-    if (request.action === "pictos__editor-route") {
+    if (request.action === "NAVIGATE_TO_EDITOR") {
         router.push("/editor");
     }
 });
