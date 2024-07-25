@@ -7,46 +7,39 @@
       <button style="color: #041C42;">Cerrar</button>
     </div>
 
-    <div class="bg-dark-yellow rounded-lg p-4 mb-6" style="border-radius: 20px;">
-      <div class="flex justify-center items-center mb-4">
-          <div class="flex justify-center">
-              <p class="font-semibold text-lg text-center">
-                <span style="font-weight:300;">Crear tarea</span><br>
-                <span style="text-transform: capitalize;">"{{ taskName }}"</span>
+
+    <div class="flex justify-center">
+              <p class=" text-lg text-center">
+                <span style="text-transform: capitalize;">{{ taskName }}</span>
               </p>
-          </div>
-          <img 
-            v-if="!isSpeaking || activeVoice !== 'voz1'" 
-            @click="speakText(taskName, 'voz1')" 
-            :class="iconClass" 
-            src="../../public/assets/img/voz.svg">
-          <img 
-            v-else-if="activeVoice === 'voz1'" 
-            @click="stopSpeaking" 
-            :class="iconClass + ' animate-pulse2'" 
-            src="../../public/assets/img/vozstop.svg" 
-            style="height: 27px;">
+              <img 
+        v-if="!isSpeaking || activeVoice !== 'voz1'" 
+        @click="speakText(taskName, 'voz1')" 
+        :class="iconClass" 
+        src="../../public/assets/img/voz.svg">
+      <img 
+        v-else-if="activeVoice === 'voz1'" 
+        @click="stopSpeaking" 
+        :class="iconClass + ' animate-pulse2 ml-2'" 
+        src="../../public/assets/img/vozstop.svg" 
+        style="height: 27px;"> 
+    </div>
+
+    <br>
+
+    <div v-show="showCard" class="bg-dark-yellow rounded-lg p-4 mb-6 flex flex-col justify-center items-center" style="border-radius: 20px; height: 500px;">
+      <div class="w-full flex flex-col justify-center items-center h-full text-center">
+        <div class="flex justify-center items-center mb-4">
+          <p class="font-semibold text-lg text-center">¿Te ha servido este apoyo?</p>
+        
+        </div>
+        <button class="btn-continueYelow font-semibold w-full mb-4" @click="proceed">Compartir pasos</button>
       </div>
     </div>
 
-    <div class="flex mb-4" style="margin-left: 25px;margin-right: 25px;">
-        <div class="mb-6">
-            <p class="font-semibold text-lg" style="font-size: 17px;">Añade los pasos necesarios para completar la tarea.</p>
-        </div>
-        <img 
-          v-if="!isSpeaking || activeVoice !== 'voz2'" 
-          @click="speakText('Añade los pasos necesarios para completar la tarea.', 'voz2')" 
-          :class="iconClass" 
-          src="../../public/assets/img/voz.svg">
-        <img 
-          v-else-if="activeVoice === 'voz2'" 
-          @click="stopSpeaking" 
-          :class="iconClass + ' animate-pulse2'" 
-          src="../../public/assets/img/vozstop.svg"
-          style="height: 27px;">
-    </div>
 
-    <div v-show="showCard" style="background-color: #fff; border-radius: 20px;">
+
+    <div v-show="!showCard" style="background-color: #fff; border-radius: 20px;">
         <div class="relative mb-4">
             <img src="../../public/assets/img/captura2.png" 
                  alt="Ejemplo de pantalla" 
@@ -72,7 +65,12 @@
 
             <!-- Contenedor del botón -->
             <div class="w-full mt-4">
-              <ol v-show="showCardDetails" class="list-decimal ml-6 mb-4">
+               <!-- <button class="flex items-center w-full p-2 rounded-md" style="position: relative; bottom: 18px;">
+
+                    <span style="font-size: 40px; font-weight: 500;">+</span>
+                    <span style="font-size: 15px; font-weight: 500; position: relative; left: 10px; top: 3px;">Agregar Detalles</span>
+                </button>-->
+                <ol class="list-decimal ml-6 mb-4">
       <li class="mb-2" style="font-size: 16px; font-weight: 500;">
         Ingresa tu identificador Run o Rut con el dígito verificador
       </li>
@@ -92,51 +90,17 @@
         Presiona el botón “ingresar solicitud”
       </li>
     </ol>
-                <button class="flex items-center w-full p-2 rounded-md" style="position: relative; bottom: 18px;">
-                    <!-- Icono de '+' -->
-                    <span style="font-size: 40px; font-weight: 500;">+</span>
-                    <span @click="agregarDetalles" style="font-size: 15px; font-weight: 500; position: relative; left: 10px; top: 3px;">Agregar Detalles</span>
-                </button>
-                
+    <br>
             </div>
         </div>
     </div>
 
-    <br>
-    <div v-show="showCard" class="flex justify-between items-center mb-4" style="font-size: 13px;font-weight: 600;">
-      <!-- Botón Atrás con ícono de flecha izquierda -->
-      <button v-show="showCard" @click="atras" class="text-dark-500 flex items-center">
-          <!-- Ícono de flecha izquierda -->
-          <i class="fas fa-chevron-left mr-2" style="font-size: 32px;"></i>
-      </button>
 
-      <!-- Texto central -->
-      <span>Paso 1 de 5</span>
-
-      <!-- Botón Siguiente con ícono de flecha derecha -->
-      <button v-show="showCard" @click="siguiente" class="text-dark-500 flex items-center">
-          <!-- Ícono de flecha derecha -->
-          <i class="fas fa-chevron-right ml-2" style="font-size: 32px;font-weight: 900;"></i>
-      </button>
-    </div>
-    <br>
-    <div class="flex justify-center">
-        <button v-show="!isRecording" @click="startRecording" class="btn-record flex items-center">
-          <img src="../../public/assets/img/grabar.svg">
-          <span class="ml-2" style="font-weight: 700; font-size: 16px;">Iniciar grabación</span>
-        </button>
-     </div>
-
-    <div class="flex justify-center">
-        <button v-show="isRecording" @click="stopRecording" class="btn-stop-record">
-        <img style="height: 32px; position: relative; bottom: 0px;" src="../../public/assets/img/stop.svg">
-        <span class="ml-2 flex text-center" style="font-weight: 700; font-size: 16px;">Detener grabación</span>
-      </button>
-    </div>
     <br>
     <div class="flex justify-between h-1/2">
         <button class="btn-back w-1/2">Atrás</button>
-        <button class="btn-continue w-1/2" @click="previsualizar">Editar</button>
+        <button v-show="!showCard" class="btn-continue w-1/2" @click="siguiente">Siguiente</button>
+        <button v-show="showCard" class="btn-continue w-1/2" @click="previsualizar">Guardar</button>
     </div>
 
     <!-- Modal -->
@@ -165,14 +129,13 @@ export default {
       isSpeaking: false,
       isRecording: false,
       showCard: false,
-      showCardDetails: false,
       utterance: null as SpeechSynthesisUtterance | null,
       iconClass: 'icon-voz',
       activeVoice: null as string | null,
     };
   },
   created() {
-    console.log('taskName:', this.taskName); // Verifica si taskName está recibido correctamente
+    console.log('taskName previsualizar:', this.taskName); // Verifica si taskName está recibido correctamente
   },
   methods: {
     proceed() {
@@ -209,9 +172,7 @@ export default {
       this.showCard = true;
     },
     previsualizar() {
-      //this.$router.push('/previsualizar');
-      this.$router.push({ name: 'Previsualizar', query: { taskName: this.taskName } });
-      //window.open('URL_DE_PREVISUALIZACION', '_blank'); // Cambia 'URL_DE_PREVISUALIZACION' por la URL deseada
+      window.open('URL_DE_PREVISUALIZACION', '_blank'); // Cambia 'URL_DE_PREVISUALIZACION' por la URL deseada
     },
     cerrar() {
       // Lógica para cerrar
@@ -221,9 +182,7 @@ export default {
     },
     siguiente() {
       // Lógica para avanzar paso
-    },
-    agregarDetalles(){
-      this.showCardDetails = true;
+      this.showCard = true;
     }
   }
 };
@@ -236,11 +195,11 @@ export default {
 }
 
 .bg-light-yellow {
-  background-color: #CAE0FF;
+  background-color: #FADA98;
 }
 
 .bg-dark-yellow {
-  background-color: #A1C9FF;
+  background-color: #F6C254;
 }
 
 .bg-dark-blue {
@@ -316,7 +275,7 @@ export default {
     transform: scale(1);
   }
 }
-
+.btn-continueYelow,
 .btn-back,
 .btn-continue {
   padding: 12px 24px;
@@ -328,14 +287,21 @@ export default {
 }
 
 .btn-back {
-  background-color: #CAE0FF;
+  background-color: #FADA98;
   border: 1px solid #222;
-  color: #000000;
+  color: #222;
 }
 
 .btn-continue {
   background-color: #041C42;
   color: #ffffff;
+}
+.btn-continueYelow {
+  background-color: #FADA98;
+  color: #222;
+  border: 1px solid #222;
+  font-weight: 700 !important;
+
 }
 </style>
 

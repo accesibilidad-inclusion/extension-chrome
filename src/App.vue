@@ -157,30 +157,30 @@ const handleRecordingButtonClick = () => {
             <span class="font-medium" style="margin-right: 25px;">Crear apoyo</span>
         </button>
 
-        <div style="background-color: #F6C254;font-size: 15px;" 
-            v-else
-            class="fixed z-[20] bottom-0 left-0 w-full bg-white shadow-lg p-4 flex justify-center items-center space-x-4 h-[70px]">
-            <router-link
-                v-if="$route.path === '/'"
-                to="/tutorial"
-                @click="handleRecordingButtonClick"
-                >
-                
-                Crear nuevo apoyo
-            </router-link>
-            <router-link
-                v-if="$route.path === '/recording'"
-                to="/"
-                class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 w-full text-center font-medium">
-                Volver a inicio
-            </router-link>
-        </div>
+        <div style="background-color: #F6C254; font-size: 15px; box-shadow: 0 -6px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -2px rgba(0, 0, 0, 0.1);" 
+     v-else
+     class="fixed z-[20] bottom-0 left-0 w-full bg-white p-4 flex justify-center items-center space-x-4 h-[70px]">
+    <router-link
+        v-if="$route.path === '/'"
+        to="/tutorial"
+        @click="handleRecordingButtonClick">
+        Crear nuevo apoyo
+    </router-link>
+    <router-link
+        v-if="$route.path === '/recording'"
+        to="/"
+        class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 w-full text-center font-medium">
+        Volver a inicio
+    </router-link>
+</div>
+
+
     </div>
 </template>
 
 <style scoped>
 /* Asegúrate de que no haya un fondo blanco en el contenedor principal */
 .h-full {
-    background-color: #F6C254;
+    background-color: #FADA98;
 }
-</style>-->
+</style>

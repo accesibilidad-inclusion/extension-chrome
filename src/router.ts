@@ -5,6 +5,7 @@ import EditorView from "@/views/EditorView.vue";
 import TutorialView from "@/views/TutorialView.vue";
 import AgregarView from "@/views/AgregarView.vue";
 import GrabarView from "./views/GrabarView.vue";
+import PrevisualizarView from "./views/PrevisualizarView.vue";
 
 const routes = [
     { path: "/", name: "HomeView", component: HomeView },
@@ -24,6 +25,12 @@ const routes = [
         path: '/grabar',
         name: 'Grabar',
         component: GrabarView,
+        props: (route: { query: { taskName: any; }; }) => ({ taskName: route.query.taskName })    
+    },
+    {
+        path: '/previsualizar',
+        name: 'Previsualizar',
+        component: PrevisualizarView,
         props: (route: { query: { taskName: any; }; }) => ({ taskName: route.query.taskName })    
     }
 ];
