@@ -117,7 +117,7 @@ export default  {
     proceed() {
       this.showAlert = false;
       // Navegar a otra ventana, por ejemplo:
-      this.$router.push('/agregar');
+      this.$router.push('/elementos');
     },
     speakText(text: string, voiceId: string) {
       if (!this.isSpeaking && 'speechSynthesis' in window) {

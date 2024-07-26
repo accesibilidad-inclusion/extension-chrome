@@ -4,12 +4,16 @@ export default {
     theme: {
         extend: {
             colors: {
-                'light-yellow': '#FADA98',
-                'dark-yellow': '#F6C254',
-                'dark-blue': '#041C42',
-                'sblue-light': '#CAE0FF',
-                'sblue': '#A1C9FF',
-              },
+              'yellow': '#F6C254',
+              'yellow-light': '#FADA98',
+              'blue-dark': '#041C42',
+              'blue': '#004079',
+              'skyblue': '#A1C9FF',
+              'skyblue-light': '#CAE0FF',
+            },
+            fontFamily: {
+              'sans': ['Open Sans', 'sans-serif'],
+            },
         },
     },
     plugins: [],

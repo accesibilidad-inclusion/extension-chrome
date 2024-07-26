@@ -301,7 +301,6 @@ export default {
   color: #222;
   border: 1px solid #222;
   font-weight: 700 !important;
-
 }
 </style>
 
