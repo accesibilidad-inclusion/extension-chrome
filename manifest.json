@@ -45,12 +45,10 @@
             "matches": [
                 "<all_urls>"
             ],
+            "all_frames": false,
             "js": [
-                "src/scripts/overlay.ts",
-                "src/scripts/sidepanel.ts",
-                "src/scripts/check-available-aids.ts",
-                "src/scripts/capture.ts",
-                "src/scripts/types.ts"
+                "src/content-scripts/overlay.ts",
+                "src/content-scripts/capture.ts"
             ],
             "css": [
                 "assets/styles/overlay.css"
