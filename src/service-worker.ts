@@ -116,7 +116,7 @@ const onOverlayOpenSidepanel = (action: SidepanelAction, sender: chrome.runtime.
         });
 };
 
-const onTakeScreenshot = async (
+const onTakeScreenshot = (
     action: CaptureScreenshotAction,
     sender: chrome.runtime.MessageSender,
 ) => {
@@ -149,7 +149,7 @@ const onOpenEditor = (action: OpenEditorAction) => {
     });
 };
 
-const addedListener = async (message: PictosAction, sender: chrome.runtime.MessageSender) => {
+const addedListener = (message: PictosAction, sender: chrome.runtime.MessageSender) => {
     switch (message.action) {
         case "UPDATE_ICON_AIDS_AVAILABLE":
             onShowAidsAvailableIcon(sender);
@@ -168,7 +168,9 @@ const addedListener = async (message: PictosAction, sender: chrome.runtime.Messa
     }
 };
 
-chrome.runtime.onMessage.addListener(addedListener);
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.runtime.onMessage.addListener(addedListener);
+});
 
 chrome.tabs.onUpdated.addListener((tabId) => {
     if (tabId === editorTabId) {
