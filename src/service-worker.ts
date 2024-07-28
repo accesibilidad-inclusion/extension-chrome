@@ -1,6 +1,7 @@
 /// <reference types="chrome"/>
 
-import { checkAvailableAid } from "@/scripts/check-available-aids";
+import { checkAvailableAid } from "@/utils/overlay-utils";
+import { compressImage } from "@/utils/image-utils";
 import type {
     Guide,
     PictosAction,
@@ -116,7 +117,7 @@ const onOverlayOpenSidepanel = (action: SidepanelAction, sender: chrome.runtime.
         });
 };
 
-const onTakeScreenshot = (
+const onTakeScreenshot = async (
     action: CaptureScreenshotAction,
     sender: chrome.runtime.MessageSender,
 ) => {
@@ -125,11 +126,15 @@ const onTakeScreenshot = (
         return;
     }
 
-    chrome.tabs.captureVisibleTab({ format: "jpeg" }, (dataUrl) => {
+    chrome.tabs.captureVisibleTab({ format: "jpeg" }, async (dataUrl) => {
+        const compressedDataUrl = await compressImage(dataUrl);
+        console.log("Compressed image: ", compressedDataUrl);
+        console.log("uncompressed image", dataUrl);
+
         sendMessage({
             action: "ADD_STEP",
             data: {
-                dataUrl: dataUrl,
+                dataUrl: compressedDataUrl,
                 screenshotData: action.data.screenshotData,
                 title: action.data.title,
                 elementType: action.data.elementType,
