@@ -1,5 +1,3 @@
-import { sendMessage } from "@/scripts/types";
-
 let recording = false;
 let observer: MutationObserver | null = null;
 

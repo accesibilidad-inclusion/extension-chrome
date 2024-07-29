@@ -11,8 +11,9 @@ interface Step {
     screenshotUrl: string;
     counter: number;
     screenshotData: ScreenshotData;
-    focusData: Extent;
+    focusData: FocusData;
     actionUrl: string; 
+    pictogram: PictogramImage | null;
 }
 
 // Data interfaces
@@ -25,6 +26,12 @@ interface ScreenshotData {
     screenHeight: number;
 }
 
+interface FocusData {
+    x: number;
+    y: number;
+    radius: number;
+}
+
 interface Extent {
     x: number;
     y: number;
@@ -32,7 +39,15 @@ interface Extent {
     height: number;
 }
 
-type EditorMode = "CENSURE" | "FOCUS" | "NONE";
+interface PictogramImage {
+    id: number;
+    filename: string;
+    layout: number;
+    path: string;
+    label: string;
+    categories: string[];
+    tags: string[];
+}
 
 // Action interfaces
 interface BaseAction {
@@ -107,9 +122,10 @@ function addListener(callback: (request: PictosAction) => void): void {
 export type {
     Guide,
     Step,
-    Extent,
     ScreenshotData,
-    EditorMode,
+    FocusData,
+    Extent,
+    PictogramImage,
     ApplicationAction,
     PictosAction,
     SidepanelAction,

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watch, onMounted, ref, nextTick } from "vue";
-import type { AddStepData, Extent, Step, Guide } from "@/scripts/types";
+import type { AddStepData, FocusData, Step, Guide } from "@/scripts/types";
 import { addListener, sendMessage } from "@/scripts/types";
 import { state, startRecording, stopRecording } from "@/service-worker";
 
@@ -8,6 +8,8 @@ const guide = ref<Guide>({
     title: "Mi Guía",
     steps: [],
 });
+
+const images = ref<HTMLImageElement[]>([]);
 
 const saveGuideToLocalStorage = () => {
     localStorage.setItem("pictos_guide", JSON.stringify(guide.value));
@@ -19,19 +21,15 @@ onMounted(() => {
     if (savedGuide) {
         guide.value = JSON.parse(savedGuide);
     }
+
+    addListener((request) => {
+        if (request.action === "ADD_STEP" && state.recording) {
+            addStep(request.data);
+        }
+    });
 });
 
 watch(guide, saveGuideToLocalStorage, { deep: true });
-
-addListener((request) => {
-    if (request.action === "ADD_STEP" && state.recording) {
-        if (request.data.dataUrl) {
-            addStep(request.data);
-        } else {
-            console.error("Error al capturar la imagen");
-        }
-    }
-});
 
 const addStep = (data: AddStepData) => {
     const newStep: Step = {
@@ -44,10 +42,10 @@ const addStep = (data: AddStepData) => {
         focusData: {
             x: 0,
             y: 0,
-            width: 0,
-            height: 0,
+            radius: 0,
         },
         actionUrl: data.actionUrl,
+        pictogram: null,
     };
 
     guide.value.steps.push(newStep);
@@ -71,34 +69,42 @@ const clearSteps = () => {
 };
 
 const onImageLoad = (event: Event, index: number) => {
-    const img = event.target as HTMLImageElement;
+    images.value[index] = event.target as HTMLImageElement;
+
     const step = guide.value.steps[index];
 
-    const naturalX =
-        (step.screenshotData.screenX * img.naturalWidth) / step.screenshotData.screenWidth;
-    const naturalY =
-        (step.screenshotData.screenY * img.naturalHeight) / step.screenshotData.screenHeight;
-
-    const elementNaturalWidth =
-        (step.screenshotData.screenElementWidth * img.naturalWidth) /
-        step.screenshotData.screenWidth;
-    const elementNaturalHeight =
-        (step.screenshotData.screenElementHeight * img.naturalHeight) /
-        step.screenshotData.screenHeight;
+    let radius = 0;
+    if (step.screenshotData.screenElementWidth >= step.screenshotData.screenElementHeight) {
+        radius = ((step.screenshotData.screenElementWidth / 2) * 100) / (step.screenshotData.screenWidth / 2);
+    } else {
+        radius = ((step.screenshotData.screenElementHeight / 2) * 100) / (step.screenshotData.screenHeight / 2);
+    }
 
     step.focusData = {
-        x: (naturalX * img.width) / img.naturalWidth,
-        y: (naturalY * img.height) / img.naturalHeight,
-        width: (elementNaturalWidth * img.width) / img.naturalWidth,
-        height: (elementNaturalHeight * img.height) / img.naturalHeight,
+        x: (step.screenshotData.screenX * 100) / step.screenshotData.screenWidth,
+        y: (step.screenshotData.screenY * 100) / step.screenshotData.screenHeight,
+        radius: radius + 5,
     };
 };
 
-const cutoutStyle = (data: Extent) => {
-    const radius = Math.max(data.width, data.height) / 2 + 0.5;
+const cutoutStyle = (data: FocusData, index: number) => {
+    if (!data || (data.radius <= 0) || index >= images.value.length) return {};
+
+    const img = images.value[index];
+
+    const x = (data.x * img.width) / 100;
+    const y = (data.y * img.height) / 100;
+
+    let radius = 0;
+    if (img.width >= img.height) {
+        radius = (data.radius * (img.width / 2)) / 100;
+    } else {
+        radius = (data.radius * (img.height / 2)) / 100;
+    }
+
     return {
-        "mask-image": `radial-gradient(circle at ${data.x}px ${data.y}px, transparent ${radius}px, black ${radius}px)`,
-        "-webkit-mask-image": `radial-gradient(circle at ${data.x}px ${data.y}px, transparent ${radius}px, black ${radius}px)`,
+        "mask-image": `radial-gradient(circle at ${x}px ${y}px, transparent ${radius}px, black ${radius}px)`,
+        "-webkit-mask-image": `radial-gradient(circle at ${x}px ${y}px, transparent ${radius}px, black ${radius}px)`,
     };
 };
 
@@ -141,9 +147,9 @@ const openEditor = () => {
                         @load="onImageLoad($event, index)"
                     />
                     <div
-                        v-if="step.focusData"
+                        v-if="step.focusData.radius > 0"
                         class="absolute z-10 top-0 left-0 w-full h-full bg-black bg-opacity-50"
-                        :style="cutoutStyle(step.focusData)"
+                        :style="cutoutStyle(step.focusData, index)"
                     ></div>
                 </div>
             </li>
