@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch, nextTick, type CSSProperties } from "vue";
-import type { Guide, Extent } from "@/scripts/types";
+import { type Guide, type Extent, getMessage } from "@/scripts/types";
 import * as StackBlur from "stackblur-canvas";
 
 interface Props {
@@ -504,7 +504,7 @@ onMounted(() => {
                 @click="clearFocus"
                 class="button text-[#041C42] outline outline-1 text-sm outline-[#041C42]"
             >
-                Eliminar Enfoque
+                {{ getMessage("deleteFocus") }}
             </button>
         </div>
         <div v-if="editorMode === 'CENSURE'">
@@ -512,13 +512,13 @@ onMounted(() => {
                 @click="undoCanvas"
                 class="button text-[#041C42] outline outline-1 text-sm outline-[#041C42]"
             >
-                Deshacer Censura
+                {{ getMessage("restoreCensure") }}
             </button>
             <button
                 @click="clearCanvas"
                 class="button text-[#041C42] outline outline-1 text-sm outline-[#041C42]"
             >
-                Limpiar Censuras
+                {{ getMessage("deleteCensures") }}
             </button>
         </div>
     </div>

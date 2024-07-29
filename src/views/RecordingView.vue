@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { watch, onMounted, ref, nextTick } from "vue";
 import type { AddStepData, FocusData, Step, Guide } from "@/scripts/types";
-import { addListener, sendMessage } from "@/scripts/types";
+import { addListener, sendMessage, getMessage } from "@/scripts/types";
 import { state, startRecording, stopRecording } from "@/service-worker";
 
 const guide = ref<Guide>({
-    title: "Mi Guía",
+    title: getMessage("taskDefaultName"),
     steps: [],
 });
 
@@ -37,7 +37,7 @@ const addStep = (data: AddStepData) => {
         counter: guide.value.steps.length + 1,
         screenshotData: data.screenshotData,
         title: data.title,
-        description: "Descripción del paso",
+        description: "",
         elementType: data.elementType,
         focusData: {
             x: 0,
@@ -63,7 +63,7 @@ const addStep = (data: AddStepData) => {
 
 const clearSteps = () => {
     guide.value.steps = [];
-    guide.value.title = "Mi Guía";
+    guide.value.title = getMessage("taskDefaultName");
     localStorage.removeItem("pictos_guide");
     stopRecording();
 };
@@ -75,9 +75,13 @@ const onImageLoad = (event: Event, index: number) => {
 
     let radius = 0;
     if (step.screenshotData.screenElementWidth >= step.screenshotData.screenElementHeight) {
-        radius = ((step.screenshotData.screenElementWidth / 2) * 100) / (step.screenshotData.screenWidth / 2);
+        radius =
+            ((step.screenshotData.screenElementWidth / 2) * 100) /
+            (step.screenshotData.screenWidth / 2);
     } else {
-        radius = ((step.screenshotData.screenElementHeight / 2) * 100) / (step.screenshotData.screenHeight / 2);
+        radius =
+            ((step.screenshotData.screenElementHeight / 2) * 100) /
+            (step.screenshotData.screenHeight / 2);
     }
 
     step.focusData = {
@@ -88,7 +92,7 @@ const onImageLoad = (event: Event, index: number) => {
 };
 
 const cutoutStyle = (data: FocusData, index: number) => {
-    if (!data || (data.radius <= 0) || index >= images.value.length) return {};
+    if (!data || data.radius <= 0 || index >= images.value.length) return {};
 
     const img = images.value[index];
 
@@ -125,19 +129,24 @@ const openEditor = () => {
     <div class="p-4 mt-4 text-center">
         <div class="flex flex-col">
             <h4 class="text-2xl font-medium">
-                {{ guide.steps.length }} {{ guide.steps.length === 1 ? "paso" : "pasos" }}
+                {{ guide.steps.length }}
+                {{ guide.steps.length === 1 ? getMessage("step") : getMessage("steps") }}
             </h4>
         </div>
         <ul class="mt-4 flex flex-col gap-6" id="screenshots-container">
             <li v-for="(step, index) in guide.steps" :key="index">
-                <p class="text-xl mb-2">Paso {{ step.counter }}</p>
+                <p class="text-xl mb-2">
+                    {{ `${getMessage("step").toUpperCase()} ${step.counter}` }}
+                </p>
                 <p class="text-lg font-semibold mb-2">{{ step.title }}</p>
                 <p class="mb-2">{{ step.description }}</p>
                 <div>
                     <p v-if="step.actionUrl" class="mb-4 text-sm text-blue-600">
                         <a :href="step.actionUrl" target="_blank">{{ step.actionUrl }}</a>
                     </p>
-                    <p v-else class="mb-4 text-sm text-red-600">No se capturó URL de acción</p>
+                    <p v-else class="mb-4 text-sm text-red-600">
+                        {{ getMessage("stepNoUrlMessage") }}
+                    </p>
                 </div>
                 <div class="relative">
                     <img
@@ -160,26 +169,26 @@ const openEditor = () => {
                 @click="startRecording"
                 class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
             >
-                Iniciar grabación
+                {{ getMessage("startRecording") }}
             </button>
             <button
                 v-if="state.recording"
                 @click="stopRecording"
                 class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
             >
-                Detener grabación
+                {{ getMessage("stopRecording") }}
             </button>
             <button
                 @click="openEditor"
                 class="bg-pink-600 text-white py-2 px-4 rounded hover:bg-pink-900"
             >
-                Editar
+                {{ getMessage("openEditor") }}
             </button>
             <button
                 @click="clearSteps"
                 class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
             >
-                Limpiar pasos
+                {{ getMessage("clearSteps") }}
             </button>
         </div>
     </div>

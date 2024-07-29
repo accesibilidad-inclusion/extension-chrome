@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import type { Guide, PictogramImage } from "@/scripts/types";
+import { getMessage, type Guide, type PictogramImage } from "@/scripts/types";
 import jsPDF from "jspdf";
 import StepImage from "@/components/StepImage.vue";
 import PictogramSelector from "@/components/PictogramSelector.vue";
 
 const guide = ref<Guide>({
-    title: "Mi Guía",
+    title: getMessage("taskDefaultName"),
     steps: [],
 });
 
@@ -77,7 +77,7 @@ const editDescription = (index: number, newDescription: string) => {
 
 const addStep = () => {
     guide.value.steps.push({
-        title: "Nuevo Paso",
+        title: getMessage("stepDefaultTitle"),
         description: "",
         elementType: "",
         screenshotUrl: "",
@@ -186,14 +186,13 @@ const downloadGuide = async () => {
 
     pdf.save(`${guide.value.title}.pdf`);
 };
-
 </script>
 
 <template>
     <div class="bg-light-blue">
         <div class="max-w-4xl mx-auto py-12" id="guide-content">
             <div class="flex justify-between items-center mb-8">
-                <h1 class="text-3xl font-semibold">Editor de guía</h1>
+                <h1 class="text-3xl font-semibold">{{ getMessage("editorName") }}</h1>
                 <div class="flex gap-2">
                     <button
                         @click="toggleEditing"
@@ -201,20 +200,24 @@ const downloadGuide = async () => {
                         :class="[isEditing ? 'bg-[#041C42]' : 'bg-[#004079]']"
                     >
                         <img src="/assets/edit.svg" alt="edit-icon" class="w-4 h-4 mr-2" />
-                        <span>{{ isEditing ? "Dejar de editar" : "Editar" }}</span>
+                        <span>{{
+                            isEditing ? getMessage("stopEditElement") : getMessage("editElement")
+                        }}</span>
                     </button>
                     <button
                         @click="downloadGuide"
                         class="button text-[#041C42] bg-white outline outline-1 text-base outline-[#041C42]"
                     >
-                        <span>Descargar guía</span>
+                        <span>{{ getMessage("downloadTask") }}</span>
                     </button>
                 </div>
             </div>
 
             <div class="mb-6">
                 <div v-if="isEditing" class="flex flex-col gap-2">
-                    <label class="text-base font-semibold text-[#041C42]">Título de la guía</label>
+                    <label class="text-base font-semibold text-[#041C42]">{{
+                        getMessage("taskTitleLabel")
+                    }}</label>
                     <input
                         v-model="guide.title"
                         @blur="editGuideTitle(guide.title)"
@@ -238,9 +241,9 @@ const downloadGuide = async () => {
                             <span class="text-lg">{{ index + 1 }}</span>
                         </div>
                         <div v-if="isEditing" class="flex flex-col gap-2 w-full">
-                            <label class="text-base font-semibold text-[#041C42]"
-                                >Título del paso</label
-                            >
+                            <label class="text-base font-semibold text-[#041C42]">{{
+                                getMessage("stepTitleLabel")
+                            }}</label>
                             <input
                                 v-model="step.title"
                                 @blur="editStepTitle(index, step.title)"
@@ -251,9 +254,9 @@ const downloadGuide = async () => {
                     </div>
                     <div class="mb-5">
                         <div v-if="isEditing" class="flex flex-col gap-2">
-                            <label class="text-base font-semibold text-[#041C42]"
-                                >Descripción del paso</label
-                            >
+                            <label class="text-base font-semibold text-[#041C42]">{{
+                                getMessage("stepDetailsLabel")
+                            }}</label>
                             <input
                                 v-model="step.description"
                                 @blur="editDescription(index, step.description)"
@@ -263,9 +266,9 @@ const downloadGuide = async () => {
                         <p v-else class="text-base">{{ step.description }}</p>
                     </div>
                     <div v-if="isEditing" class="flex flex-col gap-2">
-                        <label class="text-base font-semibold text-[#041C42]"
-                            >URL desde donde se realizó el paso</label
-                        >
+                        <label class="text-base font-semibold text-[#041C42]">{{
+                            getMessage("stepUrlLabel")
+                        }}</label>
                         <input
                             id="actionUrl"
                             v-model="step.actionUrl"
@@ -285,13 +288,13 @@ const downloadGuide = async () => {
                                 alt="download-icon"
                                 class="w-4 h-4"
                             />
-                            <span> Ir a sitio web </span>
+                            <span>{{ getMessage("stepLink") }}</span>
                         </a>
                         <p
                             v-else
                             class="mb-4 text-sm bg-[#041C42]/10 text-[#041C42]/50 button !inline-flex"
                         >
-                            No se capturó URL de acción realizada
+                            {{ getMessage("stepNoUrlMessage") }}
                         </p>
                     </div>
                     <PictogramSelector
@@ -310,9 +313,9 @@ const downloadGuide = async () => {
                     />
                     <div v-if="isEditing" class="flex flex-col gap-3 mt-2">
                         <div class="flex flex-col gap-2 mb-3">
-                            <label class="text-base font-semibold text-[#041C42]"
-                                >Subir imagen de paso</label
-                            >
+                            <label class="text-base font-semibold text-[#041C42]">{{
+                                getMessage("uploadNewImage")
+                            }}</label>
                             <input
                                 type="file"
                                 @change="uploadImage($event, index)"
@@ -323,7 +326,7 @@ const downloadGuide = async () => {
                             @click="removeStep(index)"
                             class="button text-white text-base bg-[#004079]"
                         >
-                            Eliminar Paso
+                            {{ getMessage("deleteStep") }}
                         </button>
                     </div>
                 </li>
@@ -333,7 +336,7 @@ const downloadGuide = async () => {
                 @click="addStep"
                 class="mt-3 button text-white text-base bg-[#041C42]"
             >
-                Agregar Paso
+                {{ getMessage("addStep") }}
             </button>
         </div>
     </div>

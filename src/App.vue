@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import { addListener } from "@/scripts/types";
+import { addListener, getMessage } from "@/scripts/types";
+import { onMounted } from "vue";
 
 const router = useRouter();
 
-addListener((request) => {
-    if (request.action === "NAVIGATE_TO_EDITOR") {
-        router.push("/editor");
-    }
+onMounted(() => {
+    addListener((request) => {
+        if (request.action === "NAVIGATE_TO_EDITOR") {
+            router.push("/editor");
+        }
+    });
 });
 </script>
 
@@ -26,14 +29,14 @@ addListener((request) => {
                 to="/recording"
                 class="bg-yellow-500 text-white py-2 px-4 rounded hover:bg-yellow-600 w-full text-center font-medium"
             >
-                Ir a interfaz de grabación
+                {{ getMessage("goToRecordInterface") }}
             </router-link>
             <router-link
                 v-if="$route.path === '/recording'"
                 to="/"
                 class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 w-full text-center font-medium"
             >
-                Volver a inicio
+                {{ getMessage("backToHome") }}
             </router-link>
         </div>
     </div>

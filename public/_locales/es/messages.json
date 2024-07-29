@@ -30,5 +30,117 @@
 	"overlayTextClose":{
 		"message": "Cerrar",
 		"description": "Texto botón cerrar overlay"
+	},
+	"goToRecordInterface":{
+		"message": "Ir a interfaz de grabación",
+		"description": "Texto botón para ir a interfaz de grabación"
+	},
+	"backToHome":{
+		"message": "Volver a inicio",
+		"description": "Texto botón para volver a inicio"
+	},
+	"taskDefaultName":{
+		"message": "Mi Tarea",
+		"description": "Texto por defecto para una tarea creada"
+	},
+	"stepDefaultTitle":{
+		"message": "Nuevo paso",
+		"description": "Texto por defecto para el titulo de un paso"
+	},
+	"step":{
+		"message": "paso",
+		"description": "Texto para mostrar la cantidad de pasos"
+	},
+	"steps":{
+		"message": "pasos",
+		"description": "Texto para mostrar la cantidad de pasos en prural"
+	},
+	"stepNoUrlMessage":{
+		"message": "No se capturó URL de acción",
+		"description": "Texto para mostrar cuando no se captura automaticamente la url de un paso"
+	},
+	"startRecording":{
+		"message": "Iniciar grabación",
+		"description": "Texto botón para iniciar grabación"
+	},
+	"stopRecording":{
+		"message": "Detener grabación",
+		"description": "Texto botón para detener grabación"
+	},
+	"clearSteps":{
+		"message": "Limpiar pasos",
+		"description": "Texto botón para eliminar los pasos de la tarea actual"
+	},
+	"openEditor":{
+		"message": "Editar",
+		"description": "Texto botón para abrir editor"
+	},
+	"editorName":{
+		"message": "Editor de Tarea",
+		"description": "Texto titulo para la ventana del editor"
+	},
+	"editElement":{
+		"message": "Editar",
+		"description": "Texto botón para editar un elemento de un paso"
+	},
+	"stopEditElement":{
+		"message": "Dejar de editar",
+		"description": "Texto botón para dejar de editar un elemento de un paso"
+	},
+	"downloadTask":{
+		"message": "Descargar tarea",
+		"description": "Texto botón para descargar la tarea creada"
+	},
+	"removeStep":{
+		"message": "Eliminar paso",
+		"description": "Texto botón para eliminar paso creado"
+	},
+	"taskTitleLabel":{
+		"message": "Título de la Tarea",
+		"description": "Etiqueta para el editor titulo de la tarea"
+	},
+	"stepTitleLabel":{
+		"message": "Título del paso",
+		"description": "Etiqueta para el editor titulo de un paso"
+	},
+	"stepDetailsLabel":{
+		"message": "Detalles del paso",
+		"description": "Etiqueta para el editor detalles del paso"
+	},
+	"stepUrlLabel":{
+		"message": "URL desde donde se realizó el paso",
+		"description": "Etiqueta para el editor URL desde donde se realizó el paso"
+	},
+	"stepLink":{
+		"message": "Ir a sitio web",
+		"description": "Texto botón para ir al sitio web del paso"
+	},
+	"uploadNewImage":{
+		"message": "Subir imagen de paso",
+		"description": "Etiqueta para el editor para subir una nueva imagen"
+	},
+	"deleteStep":{
+		"message": "Eliminar Paso",
+		"description": "Texto botón para eliminar un paso"
+	},
+	"addStep":{
+		"message": "Agregar paso",
+		"description": "Texto botón para agregar un nuevo paso"
+	},
+	"deleteFocus":{
+		"message": "Eliminar Enfoque",
+		"description": "Texto botón para eliminar el enfoque actual"
+	},
+	"restoreCensure":{
+		"message": "Deshacer Censura",
+		"description": "Texto botón para deshacer censura actual"
+	},
+	"deleteCensures":{
+		"message": "Limpiar Censuras",
+		"description": "Texto botón para limpiar todas las censuras en la imagen"
+	},
+	"sendTask":{
+		"message": "Enviar a PICTOS",
+		"description": "Texto botón para enviar tarea a PICTOS"
 	}
 }

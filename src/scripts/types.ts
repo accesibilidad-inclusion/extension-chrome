@@ -119,6 +119,10 @@ function addListener(callback: (request: PictosAction) => void): void {
     chrome.runtime.onMessage.addListener(callback);
 }
 
+function getMessage(name: string): string {
+    return chrome.i18n.getMessage(name);
+}
+
 export type {
     Guide,
     Step,
@@ -136,4 +140,4 @@ export type {
     OpenEditorAction,
 };
 
-export { sendMessage, addListener };
+export { sendMessage, addListener, getMessage };
