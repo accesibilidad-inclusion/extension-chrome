@@ -1,13 +1,16 @@
 import { sendMessage, addListener } from "@/scripts/types";
+import { debounce } from "lodash";
 
 let recording = false;
 let observer: MutationObserver | null = null;
+let intersectionObserver: IntersectionObserver | null = null;
 
 const initializeState = () => {
     chrome.storage.local.get(["recording"], (result) => {
         recording = result.recording || false;
         setupInteractiveElements();
         setupMutationObserver();
+        setupIntersectionObserver();
     });
 };
 
@@ -17,6 +20,7 @@ addListener((request) => {
             recording = request.data.recording;
             setupInteractiveElements();
             setupMutationObserver();
+            setupIntersectionObserver();
         }
     }
 });
@@ -24,12 +28,12 @@ addListener((request) => {
 const createTitle = (el: Element): string => {
     const tagName = el.tagName.toLowerCase();
     const textContent = el.textContent?.trim() || "";
-    let description = "";
+    let title = "";
 
     switch (tagName) {
         case "button":
         case "a":
-            description = textContent
+            title = textContent
                 ? `Haz click en el botón "${textContent}"`
                 : "Haz click en el botón";
             break;
@@ -37,11 +41,11 @@ const createTitle = (el: Element): string => {
             const placeholder = (el as HTMLInputElement).placeholder;
             const label = el.getAttribute("aria-label") || el.getAttribute("aria-labelledby");
             if (label) {
-                description = `Ingresa tu ${label.toLowerCase()}`;
+                title = `Ingresa tu ${label.toLowerCase()}`;
             } else if (placeholder) {
-                description = `Ingresa tu ${placeholder.toLowerCase()}`;
+                title = `Ingresa tu ${placeholder.toLowerCase()}`;
             } else {
-                description = `Ingresa el valor en el campo de entrada`;
+                title = `Ingresa el valor en el campo de entrada`;
             }
 
             if (!(el as HTMLInputElement).hasAttribute("autocomplete")) {
@@ -53,27 +57,29 @@ const createTitle = (el: Element): string => {
         case "select": {
             const selectedOption = (el as HTMLSelectElement).selectedOptions[0]?.textContent;
             if (selectedOption) {
-                description = `Selecciona "${selectedOption}" en el menú desplegable`;
+                title = `Selecciona "${selectedOption}" en el menú desplegable`;
             } else {
-                description = `Selecciona una opción en el menú desplegable`;
+                title = `Selecciona una opción en el menú desplegable`;
             }
             break;
         }
         case "textarea":
-            description = `Ingresa el texto en el área de texto`;
+            title = `Ingresa el texto en el área de texto`;
             break;
         default:
-            description = `Interactúa con el elemento`;
+            title = `Interactúa con el elemento`;
             break;
     }
 
-    return description;
+    return title;
 };
 
 const setupMutationObserver = () => {
     if (observer) {
         observer.disconnect();
     }
+
+    const debouncedSetup = debounce(setupInteractiveElements, 200);
 
     observer = new MutationObserver((mutations) => {
         let shouldUpdate = false;
@@ -84,7 +90,7 @@ const setupMutationObserver = () => {
             }
         }
         if (shouldUpdate) {
-            setupInteractiveElements();
+            debouncedSetup();
         }
     });
 
@@ -93,6 +99,24 @@ const setupMutationObserver = () => {
         subtree: true,
         attributes: true,
         attributeFilter: ["onclick", "onmouseover", "onfocus", "tabindex"],
+    });
+};
+
+const setupIntersectionObserver = () => {
+    if (intersectionObserver) {
+        intersectionObserver.disconnect();
+    }
+
+    intersectionObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                setupInteractiveElements();
+            }
+        });
+    });
+
+    document.querySelectorAll("*").forEach((el) => {
+        intersectionObserver!.observe(el);
     });
 };
 
@@ -128,6 +152,8 @@ const handleMouseOut = (event: Event) => {
 
 const handleClick = (event: Event) => {
     if (!recording) return;
+    // event.stopPropagation();
+
     const el = event.target as Element;
     const rect = el.getBoundingClientRect();
     const actualTitle = createTitle(el);
@@ -161,26 +187,32 @@ const getInteractiveElements = (): Element[] => {
     const interactiveRoles = ["button", "link", "checkbox", "radio", "menuitem", "tab", "listbox"];
     const elements = new Set<Element>();
 
-    interactiveTags.forEach((tag) => {
-        document.querySelectorAll(tag).forEach((el) => elements.add(el));
-    });
+    const selector = [
+        ...interactiveTags,
+        ...interactiveRoles.map((role) => `[role="${role}"]`),
+        "[onclick]",
+        "[onmouseover]",
+        "[onfocus]",
+        "[tabindex]",
+        '[contenteditable="true"]',
+        'div[class*="button"]',
+        'div[class*="btn"]',
+        'span[class*="button"]',
+        'span[class*="btn"]',
+    ].join(", ");
 
-    interactiveRoles.forEach((role) => {
-        document.querySelectorAll(`[role="${role}"]`).forEach((el) => elements.add(el));
-    });
+    const queryElements = (root: Element | Document) => {
+        root.querySelectorAll(selector).forEach((el) => elements.add(el));
 
-    document.querySelectorAll("*").forEach((el) => {
-        if (el instanceof HTMLElement) {
-            if (
-                el.hasAttribute("onclick") ||
-                el.hasAttribute("onmouseover") ||
-                el.hasAttribute("onfocus") ||
-                el.hasAttribute("tabindex")
-            ) {
-                elements.add(el);
+        // Check for shadow roots
+        if (root instanceof Element && root.shadowRoot) {
+            if (root instanceof Element && root.shadowRoot instanceof Element) {
+                queryElements(root.shadowRoot);
             }
         }
-    });
+    };
+
+    queryElements(document);
 
     return Array.from(elements);
 };
