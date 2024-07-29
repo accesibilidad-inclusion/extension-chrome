@@ -1,3 +1,5 @@
+import { sendMessage, addListener } from "@/scripts/types";
+
 let recording = false;
 let observer: MutationObserver | null = null;
 
@@ -9,7 +11,7 @@ const initializeState = () => {
     });
 };
 
-chrome.runtime.onMessage.addListener((request) => {
+addListener((request) => {
     if (request.action === "UPDATE_RECORDING_STATE") {
         if (request.data.recording !== undefined) {
             recording = request.data.recording;
@@ -136,7 +138,7 @@ const handleClick = (event: Event) => {
         title: actualTitle,
     });
 
-    chrome.runtime.sendMessage({
+    sendMessage({
         action: "CAPTURE_SCREENSHOT",
         data: {
             screenshotData: {

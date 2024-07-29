@@ -1,6 +1,7 @@
 import type { PictosAction } from "@/scripts/types";
+import { addListener } from "@/scripts/types";
 
-chrome.runtime.onMessage.addListener((message: PictosAction) => {
+addListener((message: PictosAction) => {
     switch (message.action) {
         case "LOAD_AID_IN_SIDEPANEL": {
             const iframe = document.getElementById("pictos-frame") as HTMLIFrameElement;
