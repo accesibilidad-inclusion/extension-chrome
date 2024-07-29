@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watch, onMounted, ref, nextTick } from "vue";
-import type { AddStepData, FocusData, Step, Guide } from "@/scripts/types";
+import type { AddStepData, Extent, Step, Guide } from "@/scripts/types";
 import { addListener, sendMessage } from "@/scripts/types";
 import { state, startRecording, stopRecording } from "@/service-worker";
 
@@ -42,10 +42,10 @@ const addStep = (data: AddStepData) => {
         description: "Descripción del paso",
         elementType: data.elementType,
         focusData: {
-            scaledX: 0,
-            scaledY: 0,
-            scaledElementWidth: 0,
-            scaledElementHeight: 0,
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
         },
         actionUrl: data.actionUrl,
     };
@@ -87,18 +87,18 @@ const onImageLoad = (event: Event, index: number) => {
         step.screenshotData.screenHeight;
 
     step.focusData = {
-        scaledX: (naturalX * img.width) / img.naturalWidth,
-        scaledY: (naturalY * img.height) / img.naturalHeight,
-        scaledElementWidth: (elementNaturalWidth * img.width) / img.naturalWidth,
-        scaledElementHeight: (elementNaturalHeight * img.height) / img.naturalHeight,
+        x: (naturalX * img.width) / img.naturalWidth,
+        y: (naturalY * img.height) / img.naturalHeight,
+        width: (elementNaturalWidth * img.width) / img.naturalWidth,
+        height: (elementNaturalHeight * img.height) / img.naturalHeight,
     };
 };
 
-const cutoutStyle = (data: FocusData) => {
-    const radius = Math.max(data.scaledElementWidth, data.scaledElementHeight) / 2 + 0.5;
+const cutoutStyle = (data: Extent) => {
+    const radius = Math.max(data.width, data.height) / 2 + 0.5;
     return {
-        "mask-image": `radial-gradient(circle at ${data.scaledX}px ${data.scaledY}px, transparent ${radius}px, black ${radius}px)`,
-        "-webkit-mask-image": `radial-gradient(circle at ${data.scaledX}px ${data.scaledY}px, transparent ${radius}px, black ${radius}px)`,
+        "mask-image": `radial-gradient(circle at ${data.x}px ${data.y}px, transparent ${radius}px, black ${radius}px)`,
+        "-webkit-mask-image": `radial-gradient(circle at ${data.x}px ${data.y}px, transparent ${radius}px, black ${radius}px)`,
     };
 };
 

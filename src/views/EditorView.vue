@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import type { Guide, FocusData } from "@/scripts/types";
+import type { Guide, Extent } from "@/scripts/types";
 import jsPDF from "jspdf";
 
 const guide = ref<Guide>({
@@ -76,10 +76,10 @@ const addStep = () => {
             screenHeight: 0,
         },
         focusData: {
-            scaledX: 0,
-            scaledY: 0,
-            scaledElementWidth: 0,
-            scaledElementHeight: 0,
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
         },
         actionUrl: '', // Nuevo campo para almacenar la URL de la acción
     });
@@ -107,10 +107,10 @@ const uploadImage = (event: Event, index: number) => {
 
                     // Inicializar el focusData con valores que indican que no hay enfoque
                     guide.value.steps[index].focusData = {
-                        scaledX: 0,
-                        scaledY: 0,
-                        scaledElementWidth: 0,
-                        scaledElementHeight: 0,
+                        x: 0,
+                        y: 0,
+                        width: 0,
+                        height: 0,
                     };
 
                     saveGuideToLocalStorage();
@@ -147,10 +147,10 @@ const toggleDefiningFocus = (index: number) => {
     // Limpiar el enfoque existente al comenzar a definir uno nuevo
     if (isDefiningFocus.value && guide.value.steps[index]) {
         guide.value.steps[index].focusData = {
-            scaledX: 0,
-            scaledY: 0,
-            scaledElementWidth: 0,
-            scaledElementHeight: 0,
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
         };
     }
 
@@ -208,10 +208,10 @@ const finishDefiningFocus = (event: MouseEvent) => {
             guide.value.steps[currentFocusStep.value] = {
                 ...step,
                 focusData: {
-                    scaledX: (naturalX * img.width) / img.naturalWidth + width / 2,
-                    scaledY: (naturalY * img.height) / img.naturalHeight + height / 2,
-                    scaledElementWidth: (elementNaturalWidth * img.width) / img.naturalWidth,
-                    scaledElementHeight: (elementNaturalHeight * img.height) / img.naturalHeight,
+                    x: (naturalX * img.width) / img.naturalWidth + width / 2,
+                    y: (naturalY * img.height) / img.naturalHeight + height / 2,
+                    width: (elementNaturalWidth * img.width) / img.naturalWidth,
+                    height: (elementNaturalHeight * img.height) / img.naturalHeight,
                 }
             };
             // Guarda inmediatamente después de definir el foco
@@ -230,10 +230,10 @@ const finishDefiningFocus = (event: MouseEvent) => {
 const clearFocus = (index: number) => {
     if (guide.value.steps[index]) {
         guide.value.steps[index].focusData = {
-            scaledX: 0,
-            scaledY: 0,
-            scaledElementWidth: 0,
-            scaledElementHeight: 0,
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
         };
         saveGuideToLocalStorage();
     }
@@ -299,19 +299,19 @@ const onImageLoad = (event: Event, index: number) => {
         (step.screenshotData.screenElementHeight * img.naturalHeight) /
         step.screenshotData.screenHeight;
     step.focusData = {
-        scaledX: (naturalX * img.width) / img.naturalWidth,
-        scaledY: (naturalY * img.height) / img.naturalHeight,
-        scaledElementWidth: (elementNaturalWidth * img.width) / img.naturalWidth,
-        scaledElementHeight: (elementNaturalHeight * img.height) / img.naturalHeight,
+        x: (naturalX * img.width) / img.naturalWidth,
+        y: (naturalY * img.height) / img.naturalHeight,
+        width: (elementNaturalWidth * img.width) / img.naturalWidth,
+        height: (elementNaturalHeight * img.height) / img.naturalHeight,
     };
 };
 
-const cutoutStyle = (data: FocusData) => {
-    if (!data || (data.scaledElementWidth <= 0 && data.scaledElementHeight <= 0)) return {};
-    const radius = Math.max(data.scaledElementWidth, data.scaledElementHeight) / 2 + 0.5;
+const cutoutStyle = (data: Extent) => {
+    if (!data || (data.width <= 0 && data.height <= 0)) return {};
+    const radius = Math.max(data.width, data.height) / 2 + 0.5;
     return {
-        "mask-image": `radial-gradient(circle at ${data.scaledX}px ${data.scaledY}px, transparent ${radius}px, black ${radius}px)`,
-        "-webkit-mask-image": `radial-gradient(circle at ${data.scaledX}px ${data.scaledY}px, transparent ${radius}px, black ${radius}px)`,
+        "mask-image": `radial-gradient(circle at ${data.x}px ${data.y}px, transparent ${radius}px, black ${radius}px)`,
+        "-webkit-mask-image": `radial-gradient(circle at ${data.x}px ${data.y}px, transparent ${radius}px, black ${radius}px)`,
     };
 };
 
@@ -410,7 +410,7 @@ const cutoutStyle = (data: FocusData) => {
                             :style="{ cursor: isDefiningFocus && currentFocusStep === index ? 'crosshair' : 'default' }" />
 
                         <!-- Área de enfoque -->
-                        <div v-if="step.focusData && (step.focusData.scaledElementWidth > 0 || step.focusData.scaledElementHeight > 0)"
+                        <div v-if="step.focusData && (step.focusData.width > 0 || step.focusData.height > 0)"
                             class="absolute z-10 top-0 left-0 w-full h-full bg-black bg-opacity-50 rounded-2xl"
                             :style="cutoutStyle(step.focusData)"></div>
 
