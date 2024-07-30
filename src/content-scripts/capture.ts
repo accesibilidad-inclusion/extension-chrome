@@ -122,6 +122,8 @@ const setupIntersectionObserver = () => {
 
 const setupInteractiveElements = () => {
     const interactiveElements = getInteractiveElements();
+    console.log("interactive elements: ");
+    console.log(interactiveElements);
 
     interactiveElements.forEach((el: Element) => {
         el.removeEventListener("mouseover", handleMouseOver);
@@ -183,32 +185,65 @@ const handleClick = (event: Event) => {
 };
 
 const getInteractiveElements = (): Element[] => {
-    const interactiveTags = ["a", "button", "input", "select", "textarea"];
-    const interactiveRoles = ["button", "link", "checkbox", "radio", "menuitem", "tab", "listbox"];
     const elements = new Set<Element>();
 
-    const selector = [
-        ...interactiveTags,
-        ...interactiveRoles.map((role) => `[role="${role}"]`),
-        "[onclick]",
-        "[onmouseover]",
-        "[onfocus]",
-        "[tabindex]",
-        '[contenteditable="true"]',
-        'div[class*="button"]',
-        'div[class*="btn"]',
-        'span[class*="button"]',
-        'span[class*="btn"]',
-    ].join(", ");
+    // Helper function to check if an element is truly interactive
+    const isInteractive = (el: Element): boolean => {
+        const interactiveTags = ["button", "a", "input", "select", "textarea"];
+        const interactiveRoles = [
+            "button",
+            "link",
+            "checkbox",
+            "radio",
+            "menuitem",
+            "tab",
+            "listbox",
+        ];
+        const tagName = el.tagName.toLowerCase();
+        const role = el.getAttribute("role");
+
+        // Check for native interactive elements
+        if (interactiveTags.includes(tagName)) {
+            return true;
+        }
+
+        // Check for elements with interactive roles
+        if (interactiveRoles.includes(role || "")) {
+            return true;
+        }
+
+        // Check for clickable elements
+        if (el.hasAttribute("onclick") || el.hasAttribute("href")) {
+            return true;
+        }
+
+        // Check for focusable elements
+        const tabIndex = el.getAttribute("tabindex");
+        if (tabIndex !== null && tabIndex !== "-1") {
+            return true;
+        }
+
+        // Check for contenteditable elements
+        if (el.getAttribute("contenteditable") === "true") {
+            return true;
+        }
+
+        return false;
+    };
 
     const queryElements = (root: Element | Document) => {
-        root.querySelectorAll(selector).forEach((el) => elements.add(el));
+        // Use a more specific selector to start with likely interactive elements
+        const potentialElements = root.querySelectorAll("*");
+
+        potentialElements.forEach((el) => {
+            if (isInteractive(el)) {
+                elements.add(el);
+            }
+        });
 
         // Check for shadow roots
-        if (root instanceof Element && root.shadowRoot) {
-            if (root instanceof Element && root.shadowRoot instanceof Element) {
-                queryElements(root.shadowRoot);
-            }
+        if (root instanceof Element && root.shadowRoot instanceof Element) {
+            queryElements(root.shadowRoot);
         }
     };
 
