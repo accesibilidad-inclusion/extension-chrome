@@ -82,6 +82,7 @@
     <br>
     <h3 class="text-xl font-semibold mb-2">Botones Interiores</h3>
   </div>
+
     <!-- Botones Interiores -->
   <div>
   <div class="bg-yellow-light p-4">
@@ -113,7 +114,6 @@
   <div class="bg-blue  p-4">
     <button class="w-full  btn-sky-primary hover">Hover (primary)</button>
   </div>
-
 
 
   <div class="bg-yellow-light p-4">
@@ -171,6 +171,7 @@
   </div>
 
 </div>
+
 
 <h3 class="text-xl font-semibold mb-2 p-4">Otros Elementos</h3>
 
@@ -286,7 +287,7 @@
                   </div>
               </div>
 
-              <!-- Contenedor del botón -->
+              <!-- Contenedor de la lista -->
               <div class="w-full mt-4">
               <ol class="list-decimal ml-6 mb-4">
                 <li class="mb-2" style="font-size: 16px; font-weight: 500;">
@@ -369,7 +370,8 @@
             <span class="font-medium" style="margin-right: 25px;">
               Botón Flotante
             </span>
-        </button>
+      </button>
+
     <!-- Separador -->
     <div style="height: 35px;"></div>
     
@@ -390,7 +392,7 @@ export default defineComponent({
       isInputValid: false,
       utterance: null as SpeechSynthesisUtterance | null,
     };
-  },methods: {
+  }, methods: {
     speakText(text: string, voiceId: string) {
       if (!this.isSpeaking && 'speechSynthesis' in window) {
         this.stopSpeaking(); // Detener cualquier discurso previo
