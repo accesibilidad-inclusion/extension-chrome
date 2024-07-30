@@ -122,8 +122,6 @@ const setupIntersectionObserver = () => {
 
 const setupInteractiveElements = () => {
     const interactiveElements = getInteractiveElements();
-    console.log("interactive elements: ");
-    console.log(interactiveElements);
 
     interactiveElements.forEach((el: Element) => {
         el.removeEventListener("mouseover", handleMouseOver);
@@ -140,14 +138,14 @@ const setupInteractiveElements = () => {
 
 const handleMouseOver = (event: Event) => {
     if (!recording) return;
-    const el = event.target as HTMLElement;
+    const el = event.currentTarget as HTMLElement;
     el.style.outline = "2px solid #3b82f6";
     el.style.outlineOffset = "4px";
 };
 
 const handleMouseOut = (event: Event) => {
     if (!recording) return;
-    const el = event.target as HTMLElement;
+    const el = event.currentTarget as HTMLElement;
     el.style.outline = "";
     el.style.outlineOffset = "";
 };
@@ -156,7 +154,7 @@ const handleClick = (event: Event) => {
     if (!recording) return;
     // event.stopPropagation();
 
-    const el = event.target as Element;
+    const el = event.currentTarget as Element;
     const rect = el.getBoundingClientRect();
     const actualTitle = createTitle(el);
 
