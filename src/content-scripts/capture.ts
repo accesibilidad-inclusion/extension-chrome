@@ -187,7 +187,6 @@ const handleClick = (event: Event) => {
 const getInteractiveElements = (): Element[] => {
     const elements = new Set<Element>();
 
-    // Helper function to check if an element is truly interactive
     const isInteractive = (el: Element): boolean => {
         const interactiveTags = ["button", "a", "input", "select", "textarea"];
         const interactiveRoles = [
@@ -208,12 +207,12 @@ const getInteractiveElements = (): Element[] => {
         }
 
         // Check for elements with interactive roles
-        if (interactiveRoles.includes(role || "")) {
+        if (role && interactiveRoles.includes(role)) {
             return true;
         }
 
         // Check for clickable elements
-        if (el.hasAttribute("onclick") || el.hasAttribute("href")) {
+        if (el.hasAttribute("onclick") || (tagName === "a" && el.hasAttribute("href"))) {
             return true;
         }
 
@@ -232,14 +231,18 @@ const getInteractiveElements = (): Element[] => {
     };
 
     const queryElements = (root: Element | Document) => {
-        // Use a more specific selector to start with likely interactive elements
-        const potentialElements = root.querySelectorAll("*");
-
-        potentialElements.forEach((el) => {
-            if (isInteractive(el)) {
-                elements.add(el);
-            }
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, {
+            acceptNode: function (node) {
+                return isInteractive(node as Element)
+                    ? NodeFilter.FILTER_ACCEPT
+                    : NodeFilter.FILTER_SKIP;
+            },
         });
+
+        let node;
+        while ((node = walker.nextNode()) != null) {
+            elements.add(node as Element);
+        }
 
         // Check for shadow roots
         if (root instanceof Element && root.shadowRoot instanceof Element) {
