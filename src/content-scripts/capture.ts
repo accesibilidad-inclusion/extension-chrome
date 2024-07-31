@@ -3,14 +3,12 @@ import { debounce } from "lodash";
 
 let recording = false;
 let observer: MutationObserver | null = null;
-let intersectionObserver: IntersectionObserver | null = null;
 
 const initializeState = () => {
     chrome.storage.local.get(["recording"], (result) => {
         recording = result.recording || false;
         setupInteractiveElements();
         setupMutationObserver();
-        setupIntersectionObserver();
     });
 };
 
@@ -20,7 +18,6 @@ addListener((request) => {
             recording = request.data.recording;
             setupInteractiveElements();
             setupMutationObserver();
-            setupIntersectionObserver();
         }
     }
 });
@@ -79,16 +76,15 @@ const setupMutationObserver = () => {
         observer.disconnect();
     }
 
-    const debouncedSetup = debounce(setupInteractiveElements, 200);
+    const debouncedSetup = debounce(setupInteractiveElements, 300);
 
     observer = new MutationObserver((mutations) => {
-        let shouldUpdate = false;
-        for (const mutation of mutations) {
-            if (mutation.type === "childList" || mutation.type === "attributes") {
-                shouldUpdate = true;
-                break;
-            }
-        }
+        const shouldUpdate = mutations.some(
+            (mutation) =>
+                mutation.type === "childList" ||
+                (mutation.type === "attributes" &&
+                    ["onclick", "tabindex", "role"].includes(mutation.attributeName!)),
+        );
         if (shouldUpdate) {
             debouncedSetup();
         }
@@ -98,36 +94,20 @@ const setupMutationObserver = () => {
         childList: true,
         subtree: true,
         attributes: true,
-        attributeFilter: ["onclick", "onmouseover", "onfocus", "tabindex"],
-    });
-};
-
-const setupIntersectionObserver = () => {
-    if (intersectionObserver) {
-        intersectionObserver.disconnect();
-    }
-
-    intersectionObserver = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-                setupInteractiveElements();
-            }
-        });
-    });
-
-    document.querySelectorAll("*").forEach((el) => {
-        intersectionObserver!.observe(el);
+        attributeFilter: ["onclick", "tabindex", "role"],
     });
 };
 
 const setupInteractiveElements = () => {
     const interactiveElements = getInteractiveElements();
+    console.log("Interactive elements count: ", interactiveElements.length);
 
     interactiveElements.forEach((el: Element) => {
-        if (recording) {
+        if (!el.hasAttribute("data-interactive-setup")) {
             el.addEventListener("mouseover", handleMouseOver);
             el.addEventListener("mouseout", handleMouseOut);
             el.addEventListener("click", handleClick);
+            el.setAttribute("data-interactive-setup", "true");
         }
     });
 };
@@ -135,15 +115,13 @@ const setupInteractiveElements = () => {
 const handleMouseOver = (event: Event) => {
     if (!recording) return;
     const el = event.currentTarget as HTMLElement;
-    el.style.outline = "2px solid #3b82f6";
-    el.style.outlineOffset = "4px";
+    el.classList.add("interactive-highlight");
 };
 
 const handleMouseOut = (event: Event) => {
     if (!recording) return;
     const el = event.currentTarget as HTMLElement;
-    el.style.outline = "";
-    el.style.outlineOffset = "";
+    el.classList.remove("interactive-highlight");
 };
 
 const handleClick = (event: Event) => {
@@ -191,6 +169,11 @@ const getInteractiveElements = (): Element[] => {
             "menuitem",
             "tab",
             "listbox",
+            "option",
+            "switch",
+            "searchbox",
+            "textbox",
+            "combobox",
         ];
         const tagName = el.tagName.toLowerCase();
         const role = el.getAttribute("role");
