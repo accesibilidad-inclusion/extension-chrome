@@ -18,6 +18,8 @@
         "jspdf": "^2.5.1",
         "quill": "^2.0.2",
         "stackblur-canvas": "2.7.0",
+        "@types/lodash": "^4.17.7",
+        "lodash": "^4.17.21",
         "vue": "^3.4.27",
         "vue-router": "^4.3.2"
     },

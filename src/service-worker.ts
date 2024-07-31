@@ -128,8 +128,6 @@ const onTakeScreenshot = async (
 
     chrome.tabs.captureVisibleTab({ format: "jpeg" }, async (dataUrl) => {
         const compressedDataUrl = await compressImage(dataUrl);
-        console.log("Compressed image: ", compressedDataUrl);
-        console.log("uncompressed image", dataUrl);
 
         sendMessage({
             action: "ADD_STEP",
