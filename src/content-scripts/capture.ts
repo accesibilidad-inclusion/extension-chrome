@@ -124,10 +124,6 @@ const setupInteractiveElements = () => {
     const interactiveElements = getInteractiveElements();
 
     interactiveElements.forEach((el: Element) => {
-        el.removeEventListener("mouseover", handleMouseOver);
-        el.removeEventListener("mouseout", handleMouseOut);
-        el.removeEventListener("click", handleClick);
-
         if (recording) {
             el.addEventListener("mouseover", handleMouseOver);
             el.addEventListener("mouseout", handleMouseOut);
