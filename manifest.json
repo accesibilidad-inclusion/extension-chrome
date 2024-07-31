@@ -48,6 +48,7 @@
             "all_frames": false,
             "js": [
                 "src/content-scripts/overlay.ts",
+                "src/content-scripts/styles.ts",
                 "src/content-scripts/capture.ts"
             ],
             "css": [
