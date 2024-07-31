@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref, watch, nextTick, type CSSProperties } from "vue";
-import { type Guide, type Extent, getMessage } from "@/scripts/types";
+import type { Guide, Extent } from "@/scripts/types";
+import { getMessage } from "@/utils/chrome-utils";
 import * as StackBlur from "stackblur-canvas";
 
+// TODO: Save guide (emit) in other places of this file.
 interface Props {
     isEditing: boolean;
     index: number;
-    saveGuideToLocalStorage: () => void;
 }
 
 type EditorMode = "CENSURE" | "FOCUS" | "NONE";
@@ -14,6 +15,7 @@ type EditorMode = "CENSURE" | "FOCUS" | "NONE";
 const guide = defineModel<Guide>();
 
 const props = defineProps<Props>();
+const emit = defineEmits<{ "on-save-guide": [] }>();
 
 const editorMode = ref<EditorMode>("NONE");
 const canvasRef = ref<HTMLCanvasElement | null>(null);
@@ -264,7 +266,7 @@ const clearFocus = () => {
             y: 0,
             radius: 0,
         };
-        props.saveGuideToLocalStorage();
+        emit("on-save-guide");
     }
 };
 
@@ -342,7 +344,7 @@ const finishDefiningFocus = () => {
             cutoutStyle();
             
             // Guarda inmediatamente después de definir el foco
-            props.saveGuideToLocalStorage();
+            emit("on-save-guide");
         } else {
             console.error("Invalid width or height:", width, height);
         }
@@ -370,14 +372,6 @@ const cutoutStyle = () => {
     } else {
         radius = (data.radius * (rect.height / 2)) / 100;
     }
-
-    console.log({
-        x: x,
-        y: y,
-        radius: radius,
-        width: rect.width,
-        height: rect.height
-    });
 
     cutoutStyleValue.value = {
         "mask-image": `radial-gradient(circle at ${x}px ${y}px, transparent ${radius}px, black ${radius}px)`,

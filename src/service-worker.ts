@@ -3,14 +3,13 @@
 import { checkAvailableAid } from "@/utils/overlay-utils";
 import { compressImage } from "@/utils/image-utils";
 import type {
-    Guide,
     PictosAction,
     SidepanelAction,
     CaptureScreenshotAction,
     OpenEditorAction,
     UpdateRecordingStateAction,
 } from "@/scripts/types";
-import { sendMessage } from "@/scripts/types";
+import { sendMessage } from "@/utils/chrome-utils";
 import { reactive, watch } from "vue";
 
 export const state = reactive({
@@ -26,20 +25,7 @@ watch(
     () => state.recording,
     (newValue) => {
         chrome.storage.local.set({ recording: newValue });
-        updateAllTabs();
-    },
-);
-
-export const startRecording = () => {
-    state.recording = true;
-};
-
-export const stopRecording = () => {
-    state.recording = false;
-};
-const updateAllTabs = () => {
-    chrome.tabs.query({}, (tabs) => {
-        tabs.forEach((tab) => {
+        chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
             if (tab.id && tab.url && tab.url.startsWith("http")) {
                 chrome.tabs.sendMessage(
                     tab.id,
@@ -57,30 +43,102 @@ const updateAllTabs = () => {
                 );
             }
         });
-    });
+        //updateAllTabs();
+    },
+);
+
+export const startRecording = () => {
+    state.recording = true;
 };
 
+export const stopRecording = () => {
+    state.recording = false;
+};
+
+// const updateAllTabs = () => {
+//     chrome.tabs.query({}, (tabs) => {
+//         tabs.forEach((tab) => {
+//             if (tab.id && tab.url && tab.url.startsWith("http")) {
+//                 chrome.tabs.sendMessage(
+//                     tab.id,
+//                     {
+//                         action: "UPDATE_RECORDING_STATE",
+//                         data: { recording: state.recording },
+//                     } as UpdateRecordingStateAction,
+//                     () => {
+//                         if (chrome.runtime.lastError) {
+//                             console.log(
+//                                 `Failed to send message to tab ${tab.id}: ${chrome.runtime.lastError.message}`,
+//                             );
+//                         }
+//                     },
+//                 );
+//             }
+//         });
+//     });
+// };
+
 let editorTabId: number | undefined;
-let guide: Guide;
 
 chrome.sidePanel
     .setPanelBehavior({ openPanelOnActionClick: false })
     .catch((error) => console.error(error));
 
-chrome.action.onClicked.addListener(async (tab) => {
-    if (editorTabId === tab.id || !tab.url) return;
+chrome.action.onClicked.addListener((tab) => {
+    if (editorTabId !== undefined && editorTabId === tab.id) return;
 
-    try {
-        await chrome.sidePanel.open({ tabId: tab.id, windowId: tab.windowId });
+    if (!tab.url) return;
 
-        const url = await checkAvailableAid(tab.url);
-        if (url) {
-            sendMessage({ action: "LOAD_AID_IN_SIDEPANEL", url: url });
-        } else {
-            sendMessage({ action: "CLEAR_SIDEPANEL" });
-        }
-    } catch (error) {
-        console.error("Error in chrome.action.onClicked:", error);
+    chrome.sidePanel.open({ tabId: tab.id, windowId: tab.windowId }).then(() => {
+        checkAvailableAid(tab.url).then((url) => {
+            if (url) {
+                sendMessage({ action: "LOAD_AID_IN_SIDEPANEL", url: url });
+            } else {
+                sendMessage({ action: "CLEAR_SIDEPANEL" });
+            }
+        });
+    });
+});
+
+chrome.runtime.onConnect.addListener((port) => {
+    const tabId = port.sender?.tab?.id;
+    if (!tabId) return;
+
+    if (editorTabId !== undefined && tabId === editorTabId) return;
+
+    chrome.tabs.sendMessage(
+        tabId,
+        {
+            action: "UPDATE_RECORDING_STATE",
+            data: { recording: state.recording },
+        } as UpdateRecordingStateAction,
+        () => {
+            if (chrome.runtime.lastError) {
+                console.log(
+                    `Failed to send message to tab ${tabId}: ${chrome.runtime.lastError.message}`,
+                );
+            }
+        },
+    );
+});
+
+chrome.tabs.onUpdated.addListener((tabId) => {
+    if (editorTabId !== undefined && editorTabId === tabId) {
+        sendMessage({
+            action: "NAVIGATE_TO_EDITOR",
+        }).catch((error) => {
+            console.log("Error inevitable", error);
+        });
+    }
+});
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+    if (tabId === editorTabId) {
+        chrome.sidePanel.setOptions({
+            tabId: editorTabId,
+            enabled: true,
+        });
+        editorTabId = undefined;
     }
 });
 
@@ -98,6 +156,11 @@ const onShowAidsAvailableIcon = async (sender: chrome.runtime.MessageSender) => 
 
 const onOverlayOpenSidepanel = (action: SidepanelAction, sender: chrome.runtime.MessageSender) => {
     if (!sender.tab) {
+        console.error("Tab incorreta!");
+        return;
+    }
+
+    if (editorTabId !== undefined && sender.tab.id === editorTabId) {
         console.error("tabId incorrecto!");
         return;
     }
@@ -126,10 +189,13 @@ const onTakeScreenshot = async (
         return;
     }
 
+    if (editorTabId !== undefined && sender.tab.id === editorTabId) {
+        console.error("tabId incorrecto!");
+        return;
+    }
+
     chrome.tabs.captureVisibleTab({ format: "jpeg" }, async (dataUrl) => {
         const compressedDataUrl = await compressImage(dataUrl);
-        console.log("Compressed image: ", compressedDataUrl);
-        console.log("uncompressed image", dataUrl);
 
         sendMessage({
             action: "ADD_STEP",
@@ -145,11 +211,14 @@ const onTakeScreenshot = async (
 };
 
 const onOpenEditor = (action: OpenEditorAction) => {
+    if (editorTabId) {
+        chrome.tabs.remove(editorTabId);
+    }
+
     editorTabId = action.data.tabId;
-    guide = action.data.guide;
 
     chrome.sidePanel.setOptions({
-        tabId: action.data.tabId,
+        tabId: editorTabId,
         enabled: false,
     });
 };
@@ -175,12 +244,4 @@ const addedListener = (message: PictosAction, sender: chrome.runtime.MessageSend
 
 chrome.runtime.onInstalled.addListener(() => {
     chrome.runtime.onMessage.addListener(addedListener);
-});
-
-chrome.tabs.onUpdated.addListener((tabId) => {
-    if (tabId === editorTabId) {
-        sendMessage({
-            action: "NAVIGATE_TO_EDITOR",
-        });
-    }
 });

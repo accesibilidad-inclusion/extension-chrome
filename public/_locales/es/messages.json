@@ -55,9 +55,9 @@
 		"message": "pasos",
 		"description": "Texto para mostrar la cantidad de pasos en prural"
 	},
-	"stepNoUrlMessage":{
-		"message": "No se capturó URL de acción",
-		"description": "Texto para mostrar cuando no se captura automaticamente la url de un paso"
+	"noUrlMessage":{
+		"message": "No se capturó URL",
+		"description": "Texto para mostrar cuando no se captura automaticamente la url"
 	},
 	"startRecording":{
 		"message": "Iniciar grabación",
@@ -99,6 +99,14 @@
 		"message": "Título de la Tarea",
 		"description": "Etiqueta para el editor titulo de la tarea"
 	},
+	"taskUrlLabel":{
+		"message": "URL de la tarea",
+		"description": "Etiqueta para el editor URL de la tarea"
+	},
+	"taskPrerequisitesLabel":{
+		"message": "Prerequisitos",
+		"description": "Etiqueta para el editor de prerequisitos"
+	},
 	"stepTitleLabel":{
 		"message": "Título del paso",
 		"description": "Etiqueta para el editor titulo de un paso"
@@ -111,9 +119,9 @@
 		"message": "URL desde donde se realizó el paso",
 		"description": "Etiqueta para el editor URL desde donde se realizó el paso"
 	},
-	"stepLink":{
+	"linkText":{
 		"message": "Ir a sitio web",
-		"description": "Texto botón para ir al sitio web del paso"
+		"description": "Texto botón para ir a un sitio web"
 	},
 	"uploadNewImage":{
 		"message": "Subir imagen de paso",
@@ -142,5 +150,13 @@
 	"sendTask":{
 		"message": "Enviar a PICTOS",
 		"description": "Texto botón para enviar tarea a PICTOS"
+	},
+	"defaultPictogram":{
+		"message": "158",
+		"description": "Pictograma por defecto a utilizar en caso de que no se seleccione uno en algun paso"
+	},
+	"sendingMessage":{
+		"message": "Enviando a PICTOS...",
+		"description": "Texto botón mientras se esta enviando una tarea a PICTOS"
 	}
 }

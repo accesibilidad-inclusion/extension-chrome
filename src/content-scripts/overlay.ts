@@ -1,5 +1,5 @@
 import { checkAvailableAid, shouldShowOverlay, getDomainFromUrl } from "@/utils/overlay-utils";
-import { sendMessage } from "@/scripts/types";
+import { sendMessage } from "@/utils/chrome-utils";
 
 async function initializeOverlay() {
     // Check if we're in a content script context

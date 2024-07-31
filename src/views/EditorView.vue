@@ -1,13 +1,22 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import { getMessage, type Guide, type PictogramImage } from "@/scripts/types";
-import jsPDF from "jspdf";
+import type { Guide, PictogramImage } from "@/scripts/types";
+import { getMessage } from "@/utils/chrome-utils";
+// import jsPDF from "jspdf";
 import StepImage from "@/components/StepImage.vue";
 import PictogramSelector from "@/components/PictogramSelector.vue";
+import SendTaskButton from "@/components/SendTaskButton.vue";
+import { getGuideOrDefaultFromLocalStorage, saveGuideToLocalStorage } from "@/utils/chrome-utils";
+
+// @ts-ignore
+import html2pdf from "html2pdf.js";
 
 const guide = ref<Guide>({
     title: getMessage("taskDefaultName"),
     steps: [],
+    url: "",
+    prerequisites: "",
+    tags_text: "",
 });
 
 const isEditing = ref(false);
@@ -15,11 +24,19 @@ const isEditing = ref(false);
 const pictograms = ref<PictogramImage[]>([]);
 const loadingPictograms = ref(true);
 
+const sendedGuide = ref(false);
+
+const saveGuide = () => {
+    saveGuideToLocalStorage(guide.value).then(() => {
+        console.log("Saved Guide!");
+    });
+};
+
 const getPictograms = async () => {
     try {
         const response = await fetch("https://api.pictos.cl/api/images");
         const result: PictogramImage[] = await response.json();
-        pictograms.value = result;
+        pictograms.value = result.filter((value) => value.path === "/pictos/src/4-icons/");
     } catch (err) {
         console.error(err);
     } finally {
@@ -30,48 +47,52 @@ const getPictograms = async () => {
 const toggleEditing = () => {
     if (isEditing.value) {
         // Si estamos saliendo del modo de edición, guardamos los cambios
-        saveGuideToLocalStorage();
+        saveGuide();
     }
     isEditing.value = !isEditing.value;
 };
 
 onMounted(() => {
-    const savedGuide = localStorage.getItem("pictos_guide");
-    if (savedGuide) {
-        guide.value = JSON.parse(savedGuide);
-    }
-
+    getGuideOrDefaultFromLocalStorage().then((savedGuide) => {
+        guide.value = savedGuide;
+    });
     getPictograms();
 });
 
 watch(
     () => guide.value.steps,
     () => {
-        saveGuideToLocalStorage();
+        saveGuide();
     },
     { deep: true },
 );
 
-const saveGuideToLocalStorage = () => {
-    localStorage.setItem("pictos_guide", JSON.stringify(guide.value));
-};
-
 const editGuideTitle = (newTitle: string) => {
     guide.value.title = newTitle;
-    saveGuideToLocalStorage();
+    saveGuide();
+};
+
+const editGuideUrl = (url: string) => {
+    guide.value.url = url;
+    saveGuide();
+};
+
+const editPrerequisites = (prerequisites: string) => {
+    guide.value.prerequisites = prerequisites;
+    saveGuide();
 };
 
 const editStepTitle = (index: number, newTitle: string) => {
     if (guide.value.steps[index]) {
         guide.value.steps[index].title = newTitle;
-        saveGuideToLocalStorage();
+        saveGuide();
     }
 };
 
 const editDescription = (index: number, newDescription: string) => {
     if (guide.value.steps[index]) {
         guide.value.steps[index].description = newDescription;
-        saveGuideToLocalStorage();
+        saveGuide();
     }
 };
 
@@ -98,12 +119,12 @@ const addStep = () => {
         actionUrl: "", // Nuevo campo para almacenar la URL de la acción
         pictogram: null,
     });
-    saveGuideToLocalStorage();
+    saveGuide();
 };
 
 const removeStep = (index: number) => {
     guide.value.steps.splice(index, 1);
-    saveGuideToLocalStorage();
+    saveGuide();
 };
 
 const uploadImage = (event: Event, index: number) => {
@@ -127,7 +148,7 @@ const uploadImage = (event: Event, index: number) => {
                         radius: 0,
                     };
 
-                    saveGuideToLocalStorage();
+                    saveGuide();
                 };
                 img.src = e.target?.result as string;
             }
@@ -139,57 +160,75 @@ const uploadImage = (event: Event, index: number) => {
 const editActionUrl = (index: number, url: string) => {
     if (guide.value.steps[index]) {
         guide.value.steps[index].actionUrl = url;
-        saveGuideToLocalStorage();
+        saveGuide();
     }
 };
 
-watch(guide, saveGuideToLocalStorage, { deep: true });
+watch(guide, saveGuide, { deep: true });
 
 const downloadGuide = async () => {
-    const pdf = new jsPDF("p", "mm", "a4");
+    const element = document.getElementById("pdf-guide");
+    const opt = {
+        margin: [0, 20],
+        filename: `${guide.value.title}.pdf`,
+        pagebreak: {
+            after: "#step-element",
+        },
+        image: { type: "jpeg", quality: 0.98 },
+        enableLinks: true,
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "px", format: "letter", orientation: "portrait" },
+    };
 
-    // Add title to the PDF
-    pdf.setFontSize(24);
-    pdf.text(guide.value.title, 20, 20);
+    // New Promise-based usage:
+    html2pdf().set(opt).from(element).save();
 
-    let yOffset = 40;
+    // const pdf = new jsPDF({
+    //     orientation: "portrait",
+    //     unit: "px",
+    //     format: "a4",
+    // });
 
-    for (const step of guide.value.steps) {
-        pdf.setFontSize(16);
-        pdf.text(`Paso ${step.counter}: ${step.title}`, 20, yOffset);
+    // for (const step of guide.value.steps) {
+    //     pdf.setFontSize(16);
+    //     pdf.text(`Paso ${step.counter}: ${step.title}`, 20, yOffset);
 
-        yOffset += 10;
+    //     yOffset += 10;
 
-        // Add description
-        pdf.setFontSize(12);
-        const descriptionLines = pdf.splitTextToSize(step.description, 170);
-        pdf.text(descriptionLines, 20, yOffset);
-        yOffset += 10 * descriptionLines.length;
+    //     // Add description
+    //     pdf.setFontSize(12);
+    //     const descriptionLines = pdf.splitTextToSize(step.description, 170);
+    //     pdf.text(descriptionLines, 20, yOffset);
+    //     yOffset += 10 * descriptionLines.length;
 
-        // Add screenshot
-        const imgWidth = 170;
-        const imgHeight = (170 * 9) / 16; // Assuming 16:9 aspect ratio, adjust if needed
+    //     // Add screenshot
+    //     const imgWidth = 170;
+    //     const imgHeight = (170 * 9) / 16; // Assuming 16:9 aspect ratio, adjust if needed
 
-        if (yOffset + imgHeight > 280) {
-            pdf.addPage();
-            yOffset = 20;
-        }
+    //     if (yOffset + imgHeight > 280) {
+    //         pdf.addPage();
+    //         yOffset = 20;
+    //     }
 
-        pdf.addImage(step.screenshotUrl, "PNG", 20, yOffset, imgWidth, imgHeight);
-        yOffset += imgHeight + 20;
+    //     pdf.addImage(step.screenshotUrl, "PNG", 20, yOffset, imgWidth, imgHeight);
+    //     yOffset += imgHeight + 20;
 
-        if (yOffset > 250) {
-            pdf.addPage();
-            yOffset = 20;
-        }
-    }
+    //     if (yOffset > 250) {
+    //         pdf.addPage();
+    //         yOffset = 20;
+    //     }
+    // }
 
-    pdf.save(`${guide.value.title}.pdf`);
+    // pdf.save(`${guide.value.title}.pdf`);
+};
+
+const onSendGuide = () => {
+    sendedGuide.value = true;
 };
 </script>
 
 <template>
-    <div class="bg-light-blue">
+    <div id="pdf-guide" class="bg-light-blue">
         <div class="max-w-4xl mx-auto py-12" id="guide-content">
             <div class="flex justify-between items-center mb-8">
                 <h1 class="text-3xl font-semibold">{{ getMessage("editorName") }}</h1>
@@ -225,6 +264,47 @@ const downloadGuide = async () => {
                     />
                 </div>
                 <h2 v-else class="text-2xl font-bold">{{ guide.title }}</h2>
+
+                <div v-if="isEditing" class="flex flex-col gap-2">
+                    <label class="text-base font-semibold text-[#041C42]">{{
+                        getMessage("taskUrlLabel")
+                    }}</label>
+                    <input
+                        id="actionUrl"
+                        v-model="guide.url"
+                        @blur="editGuideUrl(guide.url)"
+                        class="mt-1 input-edit focus:ring-0 w-full"
+                    />
+                </div>
+                <div v-else class="my-5">
+                    <a
+                        v-if="guide.url.length > 0"
+                        :href="guide.url"
+                        target="_blank"
+                        class="justify-center items-center gap-3 button !inline-flex bg-light-blue hover:bg-dark-blue text-[#041C42] outline outline-1 text-sm outline-[#041C42]"
+                    >
+                        <img src="/assets/link-externo.svg" alt="download-icon" class="w-4 h-4" />
+                        <span>{{ getMessage("linkText") }}</span>
+                    </a>
+                    <p
+                        v-else
+                        class="mb-4 text-sm bg-[#041C42]/10 text-[#041C42]/50 button !inline-flex"
+                    >
+                        {{ getMessage("noUrlMessage") }}
+                    </p>
+                </div>
+
+                <div v-if="isEditing" class="flex flex-col gap-2">
+                    <label class="text-base font-semibold text-[#041C42]">{{
+                        getMessage("taskPrerequisitesLabel")
+                    }}</label>
+                    <input
+                        v-model="guide.prerequisites"
+                        @blur="editPrerequisites(guide.prerequisites)"
+                        class="text-base input-edit focus:ring-0 w-full"
+                    />
+                </div>
+                <p v-else class="text-base">{{ guide.prerequisites }}</p>
             </div>
 
             <ul class="mt-4 flex flex-col gap-8" id="screenshots-container">
@@ -233,6 +313,7 @@ const downloadGuide = async () => {
                     :key="index"
                     class="bg-dark-blue outline outline-1 outline-[#041C42] rounded p-6 mb-6"
                     style="border-radius: 20px"
+                    id="step-element"
                 >
                     <div class="flex items-center gap-4 mb-2">
                         <div
@@ -288,17 +369,17 @@ const downloadGuide = async () => {
                                 alt="download-icon"
                                 class="w-4 h-4"
                             />
-                            <span>{{ getMessage("stepLink") }}</span>
+                            <span>{{ getMessage("linkText") }}</span>
                         </a>
                         <p
                             v-else
                             class="mb-4 text-sm bg-[#041C42]/10 text-[#041C42]/50 button !inline-flex"
                         >
-                            {{ getMessage("stepNoUrlMessage") }}
+                            {{ getMessage("noUrlMessage") }}
                         </p>
                     </div>
                     <PictogramSelector
-                        :isEditing="isEditing"
+                        :is-editing="isEditing"
                         :loading="loadingPictograms"
                         :pictograms="pictograms"
                         :step="step"
@@ -308,7 +389,7 @@ const downloadGuide = async () => {
                     <StepImage
                         :is-editing="isEditing"
                         :index="index"
-                        :save-guide-to-local-storage="saveGuideToLocalStorage"
+                        @on-save-guide="saveGuide"
                         v-model="guide"
                     />
                     <div v-if="isEditing" class="flex flex-col gap-3 mt-2">
@@ -338,6 +419,12 @@ const downloadGuide = async () => {
             >
                 {{ getMessage("addStep") }}
             </button>
+            <SendTaskButton
+                v-if="!sendedGuide"
+                :is-editing="isEditing"
+                @on-send-guide="onSendGuide"
+                v-model="guide"
+            />
         </div>
     </div>
 </template>

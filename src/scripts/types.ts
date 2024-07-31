@@ -2,6 +2,9 @@
 interface Guide {
     title: string;
     steps: Step[];
+    url: string;
+    prerequisites: string;
+    tags_text: string;
 }
 
 interface Step {
@@ -12,7 +15,7 @@ interface Step {
     counter: number;
     screenshotData: ScreenshotData;
     focusData: FocusData;
-    actionUrl: string; 
+    actionUrl: string;
     pictogram: PictogramImage | null;
 }
 
@@ -110,19 +113,6 @@ type PictosAction =
     | UpdateRecordingStateAction
     | OpenEditorAction;
 
-// Utility functions
-async function sendMessage(action: PictosAction): Promise<any> {
-    return chrome.runtime.sendMessage(action);
-}
-
-function addListener(callback: (request: PictosAction) => void): void {
-    chrome.runtime.onMessage.addListener(callback);
-}
-
-function getMessage(name: string): string {
-    return chrome.i18n.getMessage(name);
-}
-
 export type {
     Guide,
     Step,
@@ -139,5 +129,3 @@ export type {
     UpdateRecordingStateAction,
     OpenEditorAction,
 };
-
-export { sendMessage, addListener, getMessage };

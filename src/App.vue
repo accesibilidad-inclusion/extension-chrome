@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import { addListener, getMessage } from "@/scripts/types";
+import { addListener, getMessage } from "@/utils/chrome-utils";
 import { onMounted } from "vue";
 
 const router = useRouter();

@@ -1,4 +1,4 @@
-import { sendMessage, addListener } from "@/scripts/types";
+import { sendMessage, addListener } from "@/utils/chrome-utils";
 
 let recording = false;
 let observer: MutationObserver | null = null;

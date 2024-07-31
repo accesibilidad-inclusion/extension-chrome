@@ -1,5 +1,5 @@
 import type { PictosAction } from "@/scripts/types";
-import { addListener } from "@/scripts/types";
+import { addListener } from "@/utils/chrome-utils";
 
 addListener((message: PictosAction) => {
     switch (message.action) {

@@ -1,35 +1,52 @@
 <script setup lang="ts">
 import { watch, onMounted, ref, nextTick } from "vue";
 import type { AddStepData, FocusData, Step, Guide } from "@/scripts/types";
-import { addListener, sendMessage, getMessage } from "@/scripts/types";
+import { addListener, sendMessage, getMessage } from "@/utils/chrome-utils";
 import { state, startRecording, stopRecording } from "@/service-worker";
+import { getGuideOrDefaultFromLocalStorage, removeGuideFromLocalStorage, saveGuideToLocalStorage } from "@/utils/chrome-utils";
 
 const guide = ref<Guide>({
     title: getMessage("taskDefaultName"),
     steps: [],
+    url: "",
+    prerequisites: "",
+    tags_text: "",
 });
 
 const images = ref<HTMLImageElement[]>([]);
 
-const saveGuideToLocalStorage = () => {
-    localStorage.setItem("pictos_guide", JSON.stringify(guide.value));
+const saveGuide = () => {
+    saveGuideToLocalStorage(guide.value);
 };
-watch(() => JSON.parse(JSON.stringify(guide.value)), saveGuideToLocalStorage, { deep: true });
+
+const smoothScroll = () => {
+    nextTick(() => {
+        const container = document.querySelector("#screenshots-container");
+        if (container) {
+            const lastStep = container.lastElementChild;
+            if (lastStep) {
+                lastStep.scrollIntoView({ behavior: "smooth" });
+            }
+        }
+    });
+};
 
 onMounted(() => {
-    const savedGuide = localStorage.getItem("pictos_guide");
-    if (savedGuide) {
-        guide.value = JSON.parse(savedGuide);
-    }
-
     addListener((request) => {
         if (request.action === "ADD_STEP" && state.recording) {
             addStep(request.data);
         }
     });
+
+    getGuideOrDefaultFromLocalStorage().then((savedGuide) => {
+        guide.value = savedGuide;
+        if (guide.value.steps.length > 0) {
+            smoothScroll();
+        }
+    });
 });
 
-watch(guide, saveGuideToLocalStorage, { deep: true });
+watch(guide, saveGuide, { deep: true });
 
 const addStep = (data: AddStepData) => {
     const newStep: Step = {
@@ -48,24 +65,21 @@ const addStep = (data: AddStepData) => {
         pictogram: null,
     };
 
+    if (guide.value.steps.length <= 0) {
+        guide.value.url = newStep.actionUrl;
+    }
+
     guide.value.steps.push(newStep);
 
-    nextTick(() => {
-        const container = document.querySelector("#screenshots-container");
-        if (container) {
-            const lastStep = container.lastElementChild;
-            if (lastStep) {
-                lastStep.scrollIntoView({ behavior: "smooth" });
-            }
-        }
-    });
+    smoothScroll();
 };
 
 const clearSteps = () => {
-    guide.value.steps = [];
-    guide.value.title = getMessage("taskDefaultName");
-    localStorage.removeItem("pictos_guide");
-    stopRecording();
+    removeGuideFromLocalStorage().then(() => {
+        stopRecording();
+        guide.value.title = getMessage("taskDefaultName");
+        guide.value.steps = [];
+    });
 };
 
 const onImageLoad = (event: Event, index: number) => {
@@ -113,6 +127,7 @@ const cutoutStyle = (data: FocusData, index: number) => {
 };
 
 const openEditor = () => {
+    stopRecording();
     chrome.tabs.create({ url: "index.html" }, (tab) => {
         sendMessage({
             action: "OPEN_EDITOR",

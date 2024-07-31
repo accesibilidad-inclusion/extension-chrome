@@ -10,6 +10,8 @@ interface Props {
     step: Step;
 }
 
+// TODO: Emit on-save-guide
+
 const props = defineProps<Props>();
 const guide = defineModel<Guide>();
 const toogleMenu = ref<boolean>(false);
