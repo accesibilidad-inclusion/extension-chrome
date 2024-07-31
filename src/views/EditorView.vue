@@ -4,6 +4,16 @@ import { getMessage, type Guide, type PictogramImage } from "@/scripts/types";
 import jsPDF from "jspdf";
 import StepImage from "@/components/StepImage.vue";
 import PictogramSelector from "@/components/PictogramSelector.vue";
+import { createApp } from 'vue'
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css';
+
+const app = createApp({
+    components: {
+        QuillEditor
+    }
+})
+
 
 const guide = ref<Guide>({
     title: getMessage("taskDefaultName"),
@@ -69,11 +79,14 @@ const editStepTitle = (index: number, newTitle: string) => {
 };
 
 const editDescription = (index: number, newDescription: string) => {
+    console.log("editDescription", index, newDescription);
     if (guide.value.steps[index]) {
         guide.value.steps[index].description = newDescription;
         saveGuideToLocalStorage();
     }
 };
+
+
 
 const addStep = () => {
     guide.value.steps.push({
@@ -100,6 +113,7 @@ const addStep = () => {
     });
     saveGuideToLocalStorage();
 };
+
 
 const removeStep = (index: number) => {
     guide.value.steps.splice(index, 1);
@@ -194,20 +208,15 @@ const downloadGuide = async () => {
             <div class="flex justify-between items-center mb-8">
                 <h1 class="text-3xl font-semibold">{{ getMessage("editorName") }}</h1>
                 <div class="flex gap-2">
-                    <button
-                        @click="toggleEditing"
-                        class="button text-white text-base"
-                        :class="[isEditing ? 'bg-[#041C42]' : 'bg-[#004079]']"
-                    >
+                    <button @click="toggleEditing" class="button text-white text-base"
+                        :class="[isEditing ? 'bg-[#041C42]' : 'bg-[#004079]']">
                         <img src="/assets/edit.svg" alt="edit-icon" class="w-4 h-4 mr-2" />
                         <span>{{
                             isEditing ? getMessage("stopEditElement") : getMessage("editElement")
-                        }}</span>
+                            }}</span>
                     </button>
-                    <button
-                        @click="downloadGuide"
-                        class="button text-[#041C42] bg-white outline outline-1 text-base outline-[#041C42]"
-                    >
+                    <button @click="downloadGuide"
+                        class="button text-[#041C42] bg-white outline outline-1 text-base outline-[#041C42]">
                         <span>{{ getMessage("downloadTask") }}</span>
                     </button>
                 </div>
@@ -217,38 +226,28 @@ const downloadGuide = async () => {
                 <div v-if="isEditing" class="flex flex-col gap-2">
                     <label class="text-base font-semibold text-[#041C42]">{{
                         getMessage("taskTitleLabel")
-                    }}</label>
-                    <input
-                        v-model="guide.title"
-                        @blur="editGuideTitle(guide.title)"
-                        class="text-2xl font-bold input-edit focus:ring-0 w-full"
-                    />
+                        }}</label>
+                    <input v-model="guide.title" @blur="editGuideTitle(guide.title)"
+                        class="text-2xl font-bold input-edit focus:ring-0 w-full" />
                 </div>
                 <h2 v-else class="text-2xl font-bold">{{ guide.title }}</h2>
             </div>
 
             <ul class="mt-4 flex flex-col gap-8" id="screenshots-container">
-                <li
-                    v-for="(step, index) in guide.steps"
-                    :key="index"
+                <li v-for="(step, index) in guide.steps" :key="index"
                     class="bg-dark-blue outline outline-1 outline-[#041C42] rounded p-6 mb-6"
-                    style="border-radius: 20px"
-                >
+                    style="border-radius: 20px">
                     <div class="flex items-center gap-4 mb-2">
                         <div
-                            class="w-9 h-9 rounded-full bg-white outline outline-1 outline-[#041C42] flex justify-center items-center"
-                        >
+                            class="w-9 h-9 rounded-full bg-white outline outline-1 outline-[#041C42] flex justify-center items-center">
                             <span class="text-lg">{{ index + 1 }}</span>
                         </div>
                         <div v-if="isEditing" class="flex flex-col gap-2 w-full">
                             <label class="text-base font-semibold text-[#041C42]">{{
                                 getMessage("stepTitleLabel")
-                            }}</label>
-                            <input
-                                v-model="step.title"
-                                @blur="editStepTitle(index, step.title)"
-                                class="input-edit text-lg focus:ring-0 w-full mb-2"
-                            />
+                                }}</label>
+                            <input v-model="step.title" @blur="editStepTitle(index, step.title)"
+                                class="input-edit text-lg focus:ring-0 w-full mb-2" />
                         </div>
                         <p v-else class="text-lg font-medium">{{ step.title }}</p>
                     </div>
@@ -257,85 +256,51 @@ const downloadGuide = async () => {
                             <label class="text-base font-semibold text-[#041C42]">{{
                                 getMessage("stepDetailsLabel")
                             }}</label>
-                            <input
-                                v-model="step.description"
-                                @blur="editDescription(index, step.description)"
-                                class="text-base input-edit focus:ring-0 w-full"
-                            />
+                            <div class="bg-white rounded-xl overflow-hidden	outline outline-1 outline-[#041C42]">
+                                <QuillEditor v-model:content="step.description"
+                                    @blur="editDescription(index, step.description)"
+                                    class="text-base input-edit focus:ring-0 w-full " contentType="html"
+                                    content="html" />
+                            </div>
                         </div>
-                        <p v-else class="text-base">{{ step.description }}</p>
+                        <div v-else class="text-base" v-html="step.description"></div>
                     </div>
                     <div v-if="isEditing" class="flex flex-col gap-2">
                         <label class="text-base font-semibold text-[#041C42]">{{
                             getMessage("stepUrlLabel")
-                        }}</label>
-                        <input
-                            id="actionUrl"
-                            v-model="step.actionUrl"
-                            @blur="editActionUrl(index, step.actionUrl)"
-                            class="mt-1 input-edit focus:ring-0 w-full"
-                        />
+                            }}</label>
+                        <input id="actionUrl" v-model="step.actionUrl" @blur="editActionUrl(index, step.actionUrl)"
+                            class="mt-1 input-edit focus:ring-0 w-full" />
                     </div>
                     <div v-else class="my-5">
-                        <a
-                            v-if="step.actionUrl"
-                            :href="step.actionUrl"
-                            target="_blank"
-                            class="justify-center items-center gap-3 button !inline-flex bg-light-blue hover:bg-dark-blue text-[#041C42] outline outline-1 text-sm outline-[#041C42]"
-                        >
-                            <img
-                                src="/assets/link-externo.svg"
-                                alt="download-icon"
-                                class="w-4 h-4"
-                            />
+                        <a v-if="step.actionUrl" :href="step.actionUrl" target="_blank"
+                            class="justify-center items-center gap-3 button !inline-flex bg-light-blue hover:bg-dark-blue text-[#041C42] outline outline-1 text-sm outline-[#041C42]">
+                            <img src="/assets/link-externo.svg" alt="download-icon" class="w-4 h-4" />
                             <span>{{ getMessage("stepLink") }}</span>
                         </a>
-                        <p
-                            v-else
-                            class="mb-4 text-sm bg-[#041C42]/10 text-[#041C42]/50 button !inline-flex"
-                        >
+                        <p v-else class="mb-4 text-sm bg-[#041C42]/10 text-[#041C42]/50 button !inline-flex">
                             {{ getMessage("stepNoUrlMessage") }}
                         </p>
                     </div>
-                    <PictogramSelector
-                        :isEditing="isEditing"
-                        :loading="loadingPictograms"
-                        :pictograms="pictograms"
-                        :step="step"
-                        :index="index"
-                        v-model="guide"
-                    />
-                    <StepImage
-                        :is-editing="isEditing"
-                        :index="index"
-                        :save-guide-to-local-storage="saveGuideToLocalStorage"
-                        v-model="guide"
-                    />
+                    <PictogramSelector :isEditing="isEditing" :loading="loadingPictograms" :pictograms="pictograms"
+                        :step="step" :index="index" v-model="guide" />
+                    <StepImage :is-editing="isEditing" :index="index"
+                        :save-guide-to-local-storage="saveGuideToLocalStorage" v-model="guide" />
                     <div v-if="isEditing" class="flex flex-col gap-3 mt-2">
                         <div class="flex flex-col gap-2 mb-3">
                             <label class="text-base font-semibold text-[#041C42]">{{
                                 getMessage("uploadNewImage")
-                            }}</label>
-                            <input
-                                type="file"
-                                @change="uploadImage($event, index)"
-                                class="button text-[#004079] outline outline-1 outline-[#004079] file:bg-[#CAE0FF] file:text-[#004079] file:rounded-xl file:outline-1 file:outline-[#00407]"
-                            />
+                                }}</label>
+                            <input type="file" @change="uploadImage($event, index)"
+                                class="button text-[#004079] outline outline-1 outline-[#004079] file:bg-[#CAE0FF] file:text-[#004079] file:rounded-xl file:outline-1 file:outline-[#00407]" />
                         </div>
-                        <button
-                            @click="removeStep(index)"
-                            class="button text-white text-base bg-[#004079]"
-                        >
+                        <button @click="removeStep(index)" class="button text-white text-base bg-[#004079]">
                             {{ getMessage("deleteStep") }}
                         </button>
                     </div>
                 </li>
             </ul>
-            <button
-                v-if="isEditing"
-                @click="addStep"
-                class="mt-3 button text-white text-base bg-[#041C42]"
-            >
+            <button v-if="isEditing" @click="addStep" class="mt-3 button text-white text-base bg-[#041C42]">
                 {{ getMessage("addStep") }}
             </button>
         </div>
@@ -382,5 +347,9 @@ const downloadGuide = async () => {
     border: 2px solid blue;
     background-color: rgba(0, 0, 255, 0.2);
     pointer-events: none;
+}
+
+#quill-editor {
+    background-color: white !important;
 }
 </style>
