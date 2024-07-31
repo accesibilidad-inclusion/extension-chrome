@@ -5,7 +5,7 @@
         src="https://app.pictos.cl/inicio?view=embed"
         width="100%"
         height="100%"
-        class="border-0 m-0 h-[calc(100vh_-_70px)]"
+        class="border-0 m-0 h-[calc(100vh)]"
     >
     </iframe>
 </template>

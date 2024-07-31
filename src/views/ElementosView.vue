@@ -560,10 +560,6 @@ export default defineComponent({
   background-color: #041C42;
 }
 
-.bg-blue-dark {
-  background-color: #041C42;
-}
-
 .bg-blue{
   background-color: #004079;
 }
