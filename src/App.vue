@@ -4,9 +4,7 @@
         <RouterView />
       </div>
     </main>
-    <div
-      class="fixed z-[0] bg-yellow bottom-0 left-0 w-full shadow-lg p-4 flex justify-center items-center space-x-4"
-    >
+    <div v-if="$route.path === '/'" class="fixed z-[0] bg-yellow bottom-0 left-0 w-full shadow-lg p-4 flex justify-center items-center space-x-4">
       <!--<router-link
         v-if="$route.path === '/'"
         to="/recording"
@@ -15,14 +13,14 @@
         {{ getMessage("goToRecordInterface") }}
       </router-link>-->
       <router-link
-        v-if="$route.path === '/recording'"
+       v-if="$route.path === String('/recording')"
         to="/"
         class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 w-full text-center font-medium"
       >
         {{ getMessage("backToHome") }}
       </router-link>
 
-      <router-link v-if="$route.path === '/'" to="/recording" >
+      <router-link v-if="$route.path === '/'" to="/agregar" >
         <button class="fixed bottom-5 right-4 flex items-center bg-white shadow-lg rounded-full border border-black">
 
         <div class="p-2 flex items-center justify-center mr-2">
