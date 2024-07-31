@@ -7,6 +7,7 @@ const router = useRouter();
 
 onMounted(() => {
     addListener((request) => {
+        console.log("EDITOR LISTENER");
         if (request.action === "NAVIGATE_TO_EDITOR") {
             router.push("/editor");
         }

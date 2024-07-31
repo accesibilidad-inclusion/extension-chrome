@@ -2,14 +2,22 @@
 import { onMounted, ref, watch } from "vue";
 import type { Guide, PictogramImage } from "@/scripts/types";
 import { getMessage } from "@/utils/chrome-utils";
-// import jsPDF from "jspdf";
+import jsPDF from "jspdf";
 import StepImage from "@/components/StepImage.vue";
 import PictogramSelector from "@/components/PictogramSelector.vue";
 import SendTaskButton from "@/components/SendTaskButton.vue";
 import { getGuideOrDefaultFromLocalStorage, saveGuideToLocalStorage } from "@/utils/chrome-utils";
 
+// import { createApp } from 'vue'
 // @ts-ignore
-import html2pdf from "html2pdf.js";
+import { QuillEditor } from "@vueup/vue-quill";
+import "@vueup/vue-quill/dist/vue-quill.snow.css";
+
+// const app = createApp({
+//     components: {
+//         QuillEditor
+//     }
+// })
 
 const guide = ref<Guide>({
     title: getMessage("taskDefaultName"),
@@ -53,10 +61,11 @@ const toggleEditing = () => {
 };
 
 onMounted(() => {
-    getGuideOrDefaultFromLocalStorage().then((savedGuide) => {
-        guide.value = savedGuide;
+    getPictograms().then(() => {
+        getGuideOrDefaultFromLocalStorage().then((savedGuide) => {
+            guide.value = savedGuide;
+        });
     });
-    getPictograms();
 });
 
 watch(
@@ -90,6 +99,7 @@ const editStepTitle = (index: number, newTitle: string) => {
 };
 
 const editDescription = (index: number, newDescription: string) => {
+    console.log("editDescription", index, newDescription);
     if (guide.value.steps[index]) {
         guide.value.steps[index].description = newDescription;
         saveGuide();
@@ -167,59 +177,45 @@ const editActionUrl = (index: number, url: string) => {
 watch(guide, saveGuide, { deep: true });
 
 const downloadGuide = async () => {
-    const element = document.getElementById("pdf-guide");
-    const opt = {
-        margin: [0, 20],
-        filename: `${guide.value.title}.pdf`,
-        pagebreak: {
-            after: "#step-element",
-        },
-        image: { type: "jpeg", quality: 0.98 },
-        enableLinks: true,
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "px", format: "letter", orientation: "portrait" },
-    };
+    const pdf = new jsPDF("p", "mm", "a4");
 
-    // New Promise-based usage:
-    html2pdf().set(opt).from(element).save();
+    // Add title to the PDF
+    pdf.setFontSize(24);
+    pdf.text(guide.value.title, 20, 20);
 
-    // const pdf = new jsPDF({
-    //     orientation: "portrait",
-    //     unit: "px",
-    //     format: "a4",
-    // });
+    let yOffset = 40;
 
-    // for (const step of guide.value.steps) {
-    //     pdf.setFontSize(16);
-    //     pdf.text(`Paso ${step.counter}: ${step.title}`, 20, yOffset);
+    for (const step of guide.value.steps) {
+        pdf.setFontSize(16);
+        pdf.text(`Paso ${step.counter}: ${step.title}`, 20, yOffset);
 
-    //     yOffset += 10;
+        yOffset += 10;
 
-    //     // Add description
-    //     pdf.setFontSize(12);
-    //     const descriptionLines = pdf.splitTextToSize(step.description, 170);
-    //     pdf.text(descriptionLines, 20, yOffset);
-    //     yOffset += 10 * descriptionLines.length;
+        // Add description
+        pdf.setFontSize(12);
+        const descriptionLines = pdf.splitTextToSize(step.description, 170);
+        pdf.text(descriptionLines, 20, yOffset);
+        yOffset += 10 * descriptionLines.length;
 
-    //     // Add screenshot
-    //     const imgWidth = 170;
-    //     const imgHeight = (170 * 9) / 16; // Assuming 16:9 aspect ratio, adjust if needed
+        // Add screenshot
+        const imgWidth = 170;
+        const imgHeight = (170 * 9) / 16; // Assuming 16:9 aspect ratio, adjust if needed
 
-    //     if (yOffset + imgHeight > 280) {
-    //         pdf.addPage();
-    //         yOffset = 20;
-    //     }
+        if (yOffset + imgHeight > 280) {
+            pdf.addPage();
+            yOffset = 20;
+        }
 
-    //     pdf.addImage(step.screenshotUrl, "PNG", 20, yOffset, imgWidth, imgHeight);
-    //     yOffset += imgHeight + 20;
+        pdf.addImage(step.screenshotUrl, "PNG", 20, yOffset, imgWidth, imgHeight);
+        yOffset += imgHeight + 20;
 
-    //     if (yOffset > 250) {
-    //         pdf.addPage();
-    //         yOffset = 20;
-    //     }
-    // }
+        if (yOffset > 250) {
+            pdf.addPage();
+            yOffset = 20;
+        }
+    }
 
-    // pdf.save(`${guide.value.title}.pdf`);
+    pdf.save(`${guide.value.title}.pdf`);
 };
 
 const onSendGuide = () => {
@@ -338,13 +334,18 @@ const onSendGuide = () => {
                             <label class="text-base font-semibold text-[#041C42]">{{
                                 getMessage("stepDetailsLabel")
                             }}</label>
-                            <input
-                                v-model="step.description"
-                                @blur="editDescription(index, step.description)"
-                                class="text-base input-edit focus:ring-0 w-full"
-                            />
+                            <div
+                                class="bg-white rounded-xl overflow-hidden outline outline-1 outline-[#041C42]"
+                            >
+                                <QuillEditor
+                                    v-model:content="step.description"
+                                    @blur="editDescription(index, step.description)"
+                                    class="text-base input-edit focus:ring-0 w-full"
+                                    contentType="html"
+                                />
+                            </div>
                         </div>
-                        <p v-else class="text-base">{{ step.description }}</p>
+                        <div v-else class="text-base" v-html="step.description"></div>
                     </div>
                     <div v-if="isEditing" class="flex flex-col gap-2">
                         <label class="text-base font-semibold text-[#041C42]">{{
@@ -469,5 +470,9 @@ const onSendGuide = () => {
     border: 2px solid blue;
     background-color: rgba(0, 0, 255, 0.2);
     pointer-events: none;
+}
+
+#quill-editor {
+    background-color: white !important;
 }
 </style>

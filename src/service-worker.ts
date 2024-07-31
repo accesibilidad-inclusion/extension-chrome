@@ -96,6 +96,8 @@ chrome.action.onClicked.addListener((tab) => {
             } else {
                 sendMessage({ action: "CLEAR_SIDEPANEL" });
             }
+        }).catch((error) => {
+            console.log("checkAvailableAid Error:", error);
         });
     });
 });
@@ -124,10 +126,11 @@ chrome.runtime.onConnect.addListener((port) => {
 
 chrome.tabs.onUpdated.addListener((tabId) => {
     if (editorTabId !== undefined && editorTabId === tabId) {
+        console.log("NAVIGATE_TO_EDITOR");
         sendMessage({
             action: "NAVIGATE_TO_EDITOR",
         }).catch((error) => {
-            console.log("Error inevitable", error);
+            console.log("NAVIGATE_TO_EDITOR Error:", error);
         });
     }
 });
@@ -161,7 +164,7 @@ const onOverlayOpenSidepanel = (action: SidepanelAction, sender: chrome.runtime.
     }
 
     if (editorTabId !== undefined && sender.tab.id === editorTabId) {
-        console.error("tabId incorrecto!");
+        console.error("Intentando abrir sidepanel en el editor.");
         return;
     }
 
@@ -190,7 +193,7 @@ const onTakeScreenshot = async (
     }
 
     if (editorTabId !== undefined && sender.tab.id === editorTabId) {
-        console.error("tabId incorrecto!");
+        console.log("Intentando capturar imagen en el editor.");
         return;
     }
 
