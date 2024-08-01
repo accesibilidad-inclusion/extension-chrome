@@ -7,8 +7,7 @@ let observer: MutationObserver | null = null;
 const initializeState = () => {
     chrome.storage.local.get(["recording"], (result) => {
         recording = result.recording || false;
-        setupInteractiveElements();
-        setupMutationObserver();
+        setupObservers();
     });
 };
 
@@ -16,11 +15,15 @@ addListener((request) => {
     if (request.action === "UPDATE_RECORDING_STATE") {
         if (request.data.recording !== undefined) {
             recording = request.data.recording;
-            setupInteractiveElements();
-            setupMutationObserver();
+            setupObservers();
         }
     }
 });
+
+const setupObservers = () => {
+    setupInteractiveElements();
+    setupMutationObserver();
+};
 
 const createTitle = (el: Element): string => {
     const tagName = el.tagName.toLowerCase();
@@ -76,7 +79,9 @@ const setupMutationObserver = () => {
         observer.disconnect();
     }
 
-    const debouncedSetup = debounce(setupInteractiveElements, 300);
+    const debouncedSetup = debounce(() => {
+        setupInteractiveElements();
+    }, 300);
 
     observer = new MutationObserver((mutations) => {
         const shouldUpdate = mutations.some(
@@ -90,7 +95,7 @@ const setupMutationObserver = () => {
         }
     });
 
-    observer.observe(document.body, {
+    observer.observe(document, {
         childList: true,
         subtree: true,
         attributes: true,
@@ -100,7 +105,6 @@ const setupMutationObserver = () => {
 
 const setupInteractiveElements = () => {
     const interactiveElements = getInteractiveElements();
-    console.log("Interactive elements count: ", interactiveElements.length);
 
     interactiveElements.forEach((el: Element) => {
         if (!el.hasAttribute("data-interactive-setup")) {
@@ -126,17 +130,16 @@ const handleMouseOut = (event: Event) => {
 
 const handleClick = (event: Event) => {
     if (!recording) return;
-    // event.stopPropagation();
 
     const el = event.currentTarget as Element;
     const rect = el.getBoundingClientRect();
     const actualTitle = createTitle(el);
 
-    console.log("Capturing click event", {
-        url: window.location.href,
-        element: el,
-        title: actualTitle,
-    });
+    // console.log("Capturing click event", {
+    //     url: window.location.href,
+    //     element: el,
+    //     title: actualTitle,
+    // });
 
     sendMessage({
         action: "CAPTURE_SCREENSHOT",
@@ -221,9 +224,11 @@ const getInteractiveElements = (): Element[] => {
             elements.add(node as Element);
         }
 
-        // Check for shadow roots
-        if (root instanceof Element && root.shadowRoot instanceof Element) {
-            queryElements(root.shadowRoot);
+        if (root instanceof Element) {
+            if (root.shadowRoot instanceof Element) queryElements(root.shadowRoot);
+            // Check for closed shadow roots using a non-standard property
+            const closedShadowRoot = (root as any).closedShadowRoot;
+            if (closedShadowRoot) queryElements(closedShadowRoot);
         }
     };
 
