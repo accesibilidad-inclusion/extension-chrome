@@ -394,6 +394,7 @@ const onSendGuide = () => {
                         :step="step"
                         :index="index"
                         v-model="guide"
+                        @on-save-guide="saveGuide"
                     />
                     <StepImage
                         :is-editing="isEditing"
