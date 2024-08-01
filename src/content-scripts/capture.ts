@@ -3,7 +3,6 @@ import { debounce } from "lodash";
 
 let recording = false;
 let observer: MutationObserver | null = null;
-let urlChangeObserver: MutationObserver | null = null;
 
 const initializeState = () => {
     chrome.storage.local.get(["recording"], (result) => {
@@ -24,7 +23,6 @@ addListener((request) => {
 const setupObservers = () => {
     setupInteractiveElements();
     setupMutationObserver();
-    setupUrlChangeObserver();
 };
 
 const createTitle = (el: Element): string => {
@@ -82,7 +80,6 @@ const setupMutationObserver = () => {
     }
 
     const debouncedSetup = debounce(() => {
-        console.log("MutationObserver triggered, setting up interactive elements");
         setupInteractiveElements();
     }, 300);
 
@@ -106,28 +103,8 @@ const setupMutationObserver = () => {
     });
 };
 
-const setupUrlChangeObserver = () => {
-    if (urlChangeObserver) {
-        urlChangeObserver.disconnect();
-    }
-
-    let lastUrl = location.href;
-
-    urlChangeObserver = new MutationObserver(() => {
-        const url = location.href;
-        if (url !== lastUrl) {
-            console.log("URL changed, setting up all observers");
-            lastUrl = url;
-            setupObservers();
-        }
-    });
-
-    urlChangeObserver.observe(document, { subtree: true, childList: true });
-};
-
 const setupInteractiveElements = () => {
     const interactiveElements = getInteractiveElements();
-    console.log("Interactive elements count: ", interactiveElements.length);
 
     interactiveElements.forEach((el: Element) => {
         if (!el.hasAttribute("data-interactive-setup")) {
@@ -153,17 +130,16 @@ const handleMouseOut = (event: Event) => {
 
 const handleClick = (event: Event) => {
     if (!recording) return;
-    // event.stopPropagation();
 
     const el = event.currentTarget as Element;
     const rect = el.getBoundingClientRect();
     const actualTitle = createTitle(el);
 
-    console.log("Capturing click event", {
-        url: window.location.href,
-        element: el,
-        title: actualTitle,
-    });
+    // console.log("Capturing click event", {
+    //     url: window.location.href,
+    //     element: el,
+    //     title: actualTitle,
+    // });
 
     sendMessage({
         action: "CAPTURE_SCREENSHOT",
