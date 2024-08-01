@@ -140,11 +140,11 @@ const getPictogramImageAlt = (pictogram: PictogramImage | null, type: string | n
 </script>
 
 <template>
-    <div class="relative">
+    <div class="relative content-center">
         <div v-if="!loading">
             <button
                 v-if="isEditing"
-                @click="togglePictogramsMenu()"
+                @click="togglePictogramsMenu"
                 class="h-9 flex items-center justify-center"
             >
                 <img
@@ -176,7 +176,7 @@ const getPictogramImageAlt = (pictogram: PictogramImage | null, type: string | n
         </div>
         <div
             v-if="toogleMenu"
-            class="absolute z-[100] top-0 left-0 mt-12 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none overflow-auto"
+            class="absolute z-[100] top-0 left-0 mt-12 w-96 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none overflow-auto"
             style="height: calc(100vh - 24rem)"
         >
             <div class="py-1 grid grid-cols-5 gap-2 p-2">

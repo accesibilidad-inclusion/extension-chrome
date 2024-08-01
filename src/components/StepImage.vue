@@ -528,7 +528,7 @@ defineExpose({ transformFinalImage });
             </button>
         </div>
     </div>
-    <div class="relative">
+    <div class="relative bg-white rounded-t-2xl">
         <!-- Imagen en el canvas para realizar la censura de datos sensibles -->
         <canvas
             :id="`step-image-${index}`"
