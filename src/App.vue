@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from "vue-router";
-import { addListener } from "@/scripts/types";
+import { addListener } from "@/utils/chrome-utils";
 
 const router = useRouter();
 const isFloatingButtonVisible = ref(true);
 
 addListener((request) => {
-    if (request.action === "pictos__editor-route") {
+    if (request.action === "NAVIGATE_TO_EDITOR") {
         router.push("/editor");
     }
 });
