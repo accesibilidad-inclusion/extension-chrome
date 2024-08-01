@@ -3,12 +3,12 @@ import { debounce } from "lodash";
 
 let recording = false;
 let observer: MutationObserver | null = null;
+let urlChangeObserver: MutationObserver | null = null;
 
 const initializeState = () => {
     chrome.storage.local.get(["recording"], (result) => {
         recording = result.recording || false;
-        setupInteractiveElements();
-        setupMutationObserver();
+        setupObservers();
     });
 };
 
@@ -16,11 +16,16 @@ addListener((request) => {
     if (request.action === "UPDATE_RECORDING_STATE") {
         if (request.data.recording !== undefined) {
             recording = request.data.recording;
-            setupInteractiveElements();
-            setupMutationObserver();
+            setupObservers();
         }
     }
 });
+
+const setupObservers = () => {
+    setupInteractiveElements();
+    setupMutationObserver();
+    setupUrlChangeObserver();
+};
 
 const createTitle = (el: Element): string => {
     const tagName = el.tagName.toLowerCase();
@@ -76,7 +81,10 @@ const setupMutationObserver = () => {
         observer.disconnect();
     }
 
-    const debouncedSetup = debounce(setupInteractiveElements, 300);
+    const debouncedSetup = debounce(() => {
+        console.log("MutationObserver triggered, setting up interactive elements");
+        setupInteractiveElements();
+    }, 300);
 
     observer = new MutationObserver((mutations) => {
         const shouldUpdate = mutations.some(
@@ -90,12 +98,31 @@ const setupMutationObserver = () => {
         }
     });
 
-    observer.observe(document.body, {
+    observer.observe(document, {
         childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ["onclick", "tabindex", "role"],
     });
+};
+
+const setupUrlChangeObserver = () => {
+    if (urlChangeObserver) {
+        urlChangeObserver.disconnect();
+    }
+
+    let lastUrl = location.href;
+
+    urlChangeObserver = new MutationObserver(() => {
+        const url = location.href;
+        if (url !== lastUrl) {
+            console.log("URL changed, setting up all observers");
+            lastUrl = url;
+            setupObservers();
+        }
+    });
+
+    urlChangeObserver.observe(document, { subtree: true, childList: true });
 };
 
 const setupInteractiveElements = () => {
@@ -221,9 +248,11 @@ const getInteractiveElements = (): Element[] => {
             elements.add(node as Element);
         }
 
-        // Check for shadow roots
-        if (root instanceof Element && root.shadowRoot instanceof Element) {
-            queryElements(root.shadowRoot);
+        if (root instanceof Element) {
+            if (root.shadowRoot instanceof Element) queryElements(root.shadowRoot);
+            // Check for closed shadow roots using a non-standard property
+            const closedShadowRoot = (root as any).closedShadowRoot;
+            if (closedShadowRoot) queryElements(closedShadowRoot);
         }
     };
 
