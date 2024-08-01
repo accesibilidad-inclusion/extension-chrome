@@ -43,7 +43,6 @@ watch(
                 );
             }
         });
-        //updateAllTabs();
     },
 );
 
@@ -55,30 +54,8 @@ export const stopRecording = () => {
     state.recording = false;
 };
 
-// const updateAllTabs = () => {
-//     chrome.tabs.query({}, (tabs) => {
-//         tabs.forEach((tab) => {
-//             if (tab.id && tab.url && tab.url.startsWith("http")) {
-//                 chrome.tabs.sendMessage(
-//                     tab.id,
-//                     {
-//                         action: "UPDATE_RECORDING_STATE",
-//                         data: { recording: state.recording },
-//                     } as UpdateRecordingStateAction,
-//                     () => {
-//                         if (chrome.runtime.lastError) {
-//                             console.log(
-//                                 `Failed to send message to tab ${tab.id}: ${chrome.runtime.lastError.message}`,
-//                             );
-//                         }
-//                     },
-//                 );
-//             }
-//         });
-//     });
-// };
-
 let editorTabId: number | undefined;
+let currentTabId: number | undefined;
 
 chrome.sidePanel
     .setPanelBehavior({ openPanelOnActionClick: false })
@@ -125,6 +102,8 @@ chrome.runtime.onConnect.addListener((port) => {
 });
 
 chrome.tabs.onUpdated.addListener((tabId) => {
+    currentTabId = tabId;
+
     if (editorTabId !== undefined && editorTabId === tabId) {
         console.log("NAVIGATE_TO_EDITOR");
         sendMessage({
@@ -197,6 +176,10 @@ const onTakeScreenshot = async (
         return;
     }
 
+    if (sender.tab.id !== currentTabId) {
+        return;
+    }
+
     chrome.tabs.captureVisibleTab({ format: "jpeg" }, async (dataUrl) => {
         const compressedDataUrl = await compressImage(dataUrl);
 
@@ -245,6 +228,4 @@ const addedListener = (message: PictosAction, sender: chrome.runtime.MessageSend
     }
 };
 
-chrome.runtime.onInstalled.addListener(() => {
-    chrome.runtime.onMessage.addListener(addedListener);
-});
+chrome.runtime.onMessage.addListener(addedListener);

@@ -9,7 +9,7 @@ interface Props {
 
 defineProps<Props>();
 
-const emit = defineEmits<{ "on-send-guide": [] }>();
+const emit = defineEmits<{ "on-send-guide": [], "on-before-send-guide": [] }>();
 
 const guide = defineModel<Guide>();
 const loading = ref<boolean>(false);
@@ -47,12 +47,17 @@ const sendGuide = async () => {
     if (extensionInfo.installType === "development") {
         apiUrl = "https://dev.api.pictos.cl/api/online_tasks/contribution";
         onlineVenue = 6;
+    } else {
+        // TODO: Implementar para produccion.
+        return;
     }
 
     if (apiUrl.length === 0) {
         loading.value = false;
         return;
     }
+
+    emit("on-before-send-guide");
 
     const postData: PostTask = {
         online_venue_id: onlineVenue,
@@ -66,12 +71,11 @@ const sendGuide = async () => {
         steps: [],
     };
 
-    // TODO: Check if focus radius is 0 and sei it to null in that case.
     guide.value.steps.forEach((step) => {
         const postStep: PostStep = {
             label: step.title.replace(/"/g, "'"),
             url: step.actionUrl,
-            focus_size: step.focusData.radius > 0 ? step.focusData.radius : null,
+            focus_size: step.focusData.radius > 0 ? step.focusData.radius * 0.8 : null,
             focus_x: step.focusData.radius > 0 ? step.focusData.x : null,
             focus_y: step.focusData.radius > 0 ? step.focusData.y : null,
             details: `<p>${step.description.replace(/"/g, "'")}</p>`,

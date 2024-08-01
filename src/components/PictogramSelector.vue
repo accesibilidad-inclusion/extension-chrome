@@ -10,11 +10,11 @@ interface Props {
     step: Step;
 }
 
-// TODO: Emit on-save-guide
-
 const props = defineProps<Props>();
 const guide = defineModel<Guide>();
 const toogleMenu = ref<boolean>(false);
+
+const emit = defineEmits<{ "on-save-guide": [] }>();
 
 const togglePictogramsMenu = () => {
     toogleMenu.value = !toogleMenu.value;
@@ -24,6 +24,7 @@ const selectPictogram = (pictogram: PictogramImage) => {
     if (!guide.value) return;
     guide.value.steps[props.index].pictogram = pictogram;
     toogleMenu.value = false;
+    emit("on-save-guide");
 };
 
 const getPictogramImageSrc = (pictogram: PictogramImage | null) => {

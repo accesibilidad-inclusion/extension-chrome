@@ -32,6 +32,8 @@ const isEditing = ref(false);
 const pictograms = ref<PictogramImage[]>([]);
 const loadingPictograms = ref(true);
 
+const steps = ref<InstanceType<typeof StepImage>[]>([]);
+
 const sendedGuide = ref(false);
 
 const saveGuide = () => {
@@ -218,6 +220,12 @@ const downloadGuide = async () => {
     pdf.save(`${guide.value.title}.pdf`);
 };
 
+const onBeforeSendGuide = () => {
+    steps.value.forEach(step => {
+        step.transformFinalImage();
+    });
+};
+
 const onSendGuide = () => {
     sendedGuide.value = true;
 };
@@ -391,6 +399,7 @@ const onSendGuide = () => {
                         :is-editing="isEditing"
                         :index="index"
                         @on-save-guide="saveGuide"
+                        :ref="(el) => steps[index] = el as InstanceType<typeof StepImage>"
                         v-model="guide"
                     />
                     <div v-if="isEditing" class="flex flex-col gap-3 mt-2">
@@ -421,8 +430,9 @@ const onSendGuide = () => {
                 {{ getMessage("addStep") }}
             </button>
             <SendTaskButton
-                v-if="!sendedGuide"
+                v-if="guide.steps.length > 0 && !sendedGuide"
                 :is-editing="isEditing"
+                @on-before-send-guide="onBeforeSendGuide"
                 @on-send-guide="onSendGuide"
                 v-model="guide"
             />

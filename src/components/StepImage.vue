@@ -100,6 +100,27 @@ const clearCanvas = () => {
     };
 };
 
+const drawBlur = () => {
+    history.value.forEach((extent) => {
+        if (!canvasRef.value) return;
+
+        let x = extent.x;
+        let y = extent.y;
+        const width = Math.abs(extent.width);
+        const height = Math.abs(extent.height);
+
+        if (extent.width < 0) {
+            x = extent.x - width;
+        }
+
+        if (extent.height < 0) {
+            y = extent.y - height;
+        }
+
+        StackBlur.canvasRGBA(canvasRef.value, x, y, width, height, 6);
+    });
+};
+
 const undoCanvas = () => {
     if (!props.isEditing) return;
 
@@ -127,17 +148,7 @@ const undoCanvas = () => {
 
         history.value.pop();
 
-        history.value.forEach((extent) => {
-            if (!canvasRef.value) return;
-            StackBlur.canvasRGBA(
-                canvasRef.value,
-                extent.x,
-                extent.y,
-                extent.width,
-                extent.height,
-                6,
-            );
-        });
+        drawBlur();
     };
 };
 
@@ -164,17 +175,7 @@ const resetCanvas = () => {
 
         ctx.drawImage(img, 0, 0);
 
-        history.value.forEach((extent) => {
-            if (!canvasRef.value) return;
-            StackBlur.canvasRGBA(
-                canvasRef.value,
-                extent.x,
-                extent.y,
-                extent.width,
-                extent.height,
-                6,
-            );
-        });
+        drawBlur();
     };
 };
 
@@ -320,8 +321,8 @@ const finishDefiningFocus = () => {
         if (width > 0 && height > 0 && canvasRef.value && guide.value) {
             const rect = canvasRef.value.getBoundingClientRect();
 
-            const x = ((left + (width / 2)) * 100) / rect.width;
-            const y = ((top + (height / 2)) * 100) / rect.height;
+            const x = ((left + width / 2) * 100) / rect.width;
+            const y = ((top + height / 2) * 100) / rect.height;
 
             let radius = 0;
             if (width >= height) {
@@ -342,7 +343,7 @@ const finishDefiningFocus = () => {
             };
 
             cutoutStyle();
-            
+
             // Guarda inmediatamente después de definir el foco
             emit("on-save-guide");
         } else {
@@ -483,6 +484,17 @@ onMounted(() => {
         };
     });
 });
+
+const transformFinalImage = () => {
+    if (!canvasRef.value) return;
+
+    if (!guide.value) return;
+
+    console.log(`Transform step ${props.index}`);
+    guide.value.steps[props.index].screenshotUrl = canvasRef.value.toDataURL("jpeg");
+};
+
+defineExpose({ transformFinalImage });
 </script>
 
 <template>
