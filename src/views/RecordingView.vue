@@ -168,6 +168,10 @@ const goToHome = () => {
       router.push('/');
     };
 
+    const goToElementos = () => {
+      router.push('/elementos');
+    };
+
 const alertOn = () => {
    showAlert.value = true;
    console.log("onnn")
@@ -278,7 +282,7 @@ const alertOff = () => {
 
         <div class="flex justify-between items-center mb-6">
     <!-- Logo SVG -->
-    <img src="../../public/assets/img/logo.svg" class="app-nav__logo">
+    <img @click="goToElementos" src="../../public/assets/img/logo.svg" class="app-nav__logo">
     <button @click="goToHome" style="color: #041C42; font-size: 14px;">Cerrar</button>
 </div>
 
@@ -294,7 +298,7 @@ const alertOff = () => {
       </button>
         <!-- Boton flotante -->
       <button v-if="state.recording"
-        @click="stopRecording" class="btn-stop-record-animation fixed bottom-5 left-[24%] flex items-center bg-white shadow-lg rounded-full border border-black z-30">
+        @click="stopRecording" class="btn-stop-record-animation fixed bottom-5 left-[23%] flex items-center bg-white shadow-lg rounded-full border border-black z-30">
             <div class="p-2 flex items-center justify-center mr-2">
                 <img style="height: 32px;" src="../../public/assets/img/stop.svg">
             </div>
@@ -316,32 +320,32 @@ const alertOff = () => {
 
          <!-- Modal -->
          <div v-if="showAlert" style="z-index: 9999;" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center">
-  <div style="border-radius: 20px !important;" class="bg-white rounded-lg p-6 w-3/4 md:w-1/2 lg:w-1/3 relative">
-    <!--<img style="width: 25px; position: absolute; right: 20px; top: 20px;" src="../../public/assets/img/escudo.png">-->
-    <h2 class="text-xl font-semibold mb-4">¿Estás seguro de continuar?</h2>
-    <p class="mb-4">Ahora podrás editar los pasos.</p>
-    <div class="flex justify-center mt-4">
-      <button class="btn-back text-center w-1/2 mr-2" @click="alertOff">Cancelar</button>
-      <button class="btn-continue text-center w-1/2 ml-2" @click="openEditor">Continuar</button>
-    </div>
-  </div>
-</div>
+            <div style="border-radius: 20px !important;" class="bg-white rounded-lg p-6 w-3/4 md:w-1/2 lg:w-1/3 relative">
+                <!--<img style="width: 25px; position: absolute; right: 20px; top: 20px;" src="../../public/assets/img/escudo.png">-->
+                <h2 class="text-xl font-semibold mb-4">¿Estás seguro de continuar?</h2>
+                <p class="mb-4">Ahora podrás editar los pasos.</p>
+                <div class="flex justify-center mt-4">
+                <button class="btn-back text-center w-1/2 mr-2" @click="alertOff">Cancelar</button>
+                <button class="btn-continue text-center w-1/2 ml-2" @click="openEditor">Continuar</button>
+                </div>
+            </div>
+         </div>
 
-<div v-if="guide.steps.length == 0" class="mb-6">
-    <div class="bg-dark-yellow rounded-lg p-4 mb-6 flex flex-col justify-center items-center" style="border-radius: 20px; height: 500px;">
-  <div class="w-full flex flex-col justify-center items-center h-full text-center">
-    <div class="flex justify-center items-center mb-15">
-        <p v-if="!state.recording" class="font-semibold text-lg text-center">Haz click en grabar</p>
-        <p v-if="state.recording" class="font-semibold text-lg text-center">Ahora puedes grabar tus pasos <br>click en la web</p>
-    </div>
-    <div v-if="state.recording" class="btn-continueYelow font-semibold w-full mb-4 flex items-center justify-center">
-      <i style="font-size: 50px;position: relative;top: 100px" class="fas fa-arrow-left mr-2"></i>
-    </div>
-    <div v-if="!state.recording" class="btn-continueYelow font-semibold w-full mb-4 flex items-center justify-center">
-      <i style="font-size: 50px;position: relative;top: 100px;" class="fas fa-arrow-down mr-2"></i>
-    </div>
-  </div>
-</div>
+    <div v-if="guide.steps.length == 0" class="mb-6">
+        <div class="bg-dark-yellow rounded-lg p-4 mb-6 flex flex-col justify-center items-center" style="border-radius: 20px; height: 500px;">
+        <div class="w-full flex flex-col justify-center items-center h-full text-center">
+            <div class="flex justify-center items-center mb-15">
+                <p v-if="!state.recording" class="font-semibold text-lg text-center">Haz click en grabar</p>
+                <p v-if="state.recording" class="font-semibold text-lg text-center">Ahora puedes grabar tus pasos <br>click en la web</p>
+            </div>
+            <div v-if="state.recording" class="btn-continueYelow font-semibold w-full mb-4 flex items-center justify-center">
+            <i style="font-size: 50px;position: relative;top: 100px" class="fas fa-arrow-left mr-2"></i>
+            </div>
+            <div v-if="!state.recording" class="btn-continueYelow font-semibold w-full mb-4 flex items-center justify-center">
+            <i style="font-size: 50px;position: relative;top: 100px;" class="fas fa-arrow-down mr-2"></i>
+            </div>
+        </div>
+        </div>
     </div>
 
     <div v-if="guide.steps.length > 0" class="bg-dark-yellow rounded-lg p-4 mb-6" style="border-radius: 20px;">

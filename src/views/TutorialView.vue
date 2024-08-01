@@ -90,7 +90,7 @@
 
   <!-- Modal -->
   <div v-if="showAlert" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center" style="z-index: 2;">
-    <div class="bg-white rounded-lg p-6 w-3/4 md:w-1/2 lg:w-1/3">
+    <div style="border-radius: 20px;" class="bg-white p-6 w-3/4 md:w-1/2 lg:w-1/3">
       <img style="width: 25px;position: absolute;right: 70px;" src="../../public/assets/img/escudo.png">
       <h2 class="text-xl font-semibold mb-4">Tu privacidad es primero</h2>
       <p class="mb-4">Pictos.cl no almacena datos personales.</p>
@@ -117,7 +117,7 @@ export default  {
     proceed() {
       this.showAlert = false;
       // Navegar a otra ventana, por ejemplo:
-      this.$router.push('/elementos');
+      this.$router.push('/recording');
     },
     speakText(text: string, voiceId: string) {
       if (!this.isSpeaking && 'speechSynthesis' in window) {
