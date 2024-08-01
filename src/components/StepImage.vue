@@ -528,17 +528,18 @@ defineExpose({ transformFinalImage });
             </button>
         </div>
     </div>
-    <div class="relative bg-white rounded-t-2xl">
+    <div class="relative bg-white" style="border-radius: 20px 20px 0px 0px;">
         <!-- Imagen en el canvas para realizar la censura de datos sensibles -->
         <canvas
             :id="`step-image-${index}`"
             :alt="`step-image-${index}`"
             ref="canvasRef"
-            class="w-full h-auto rounded-2xl"
+            class="w-full h-auto"
             @mousedown="mouseDown($event)"
             @mousemove="mouseMove($event)"
             @mouseup="mouseUp"
             @mouseleave="mouseLeave"
+            style="border-radius: 20px 20px 0px 0px;"
             :style="{ cursor: editorMode !== 'NONE' ? 'crosshair' : 'default' }"
         >
         </canvas>
@@ -546,7 +547,8 @@ defineExpose({ transformFinalImage });
         <!-- Área de enfoque -->
         <div
             v-if="guide && guide.steps[index].focusData.radius > 0 && editorMode !== 'CENSURE'"
-            class="absolute z-10 top-0 left-0 w-full h-full bg-black bg-opacity-50 rounded-2xl"
+            class="absolute z-10 top-0 left-0 w-full h-full bg-black bg-opacity-50"
+            style="border-radius: 20px 20px 0px 0px;"
             :style="cutoutStyleValue"
         ></div>
 

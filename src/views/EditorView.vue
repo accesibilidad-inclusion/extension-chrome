@@ -251,7 +251,7 @@ const downloadGuide = async () => {
         resizedContext?.drawImage(canvas, 0, 0, newWidth, newHeight);
 
         const img = resizedCanvas.toDataURL();
-        
+
         pdf.addImage(img, "PNG", 0, 0, newWidth, newHeight);
         pdf.save(`${guide.value.title}.pdf`); 
     });
@@ -423,7 +423,8 @@ const onSendGuide = () => {
                         v-model="guide"
                     />
                     <div
-                        class="w-full bg-white flex rounded-b-2xl justify-center p-5 content-center gap-4"
+                        class="w-full bg-white flex justify-center p-5 content-center gap-4"
+                        style="border-radius: 0px 0px 20px 20px;"
                     >
                         <PictogramSelector
                             :is-editing="isEditing"
