@@ -51,7 +51,7 @@ onMounted(() => {
 <style>
 .extra-space {
     background-color: #f6c254; /* Para que coincida con el color de fondo de la página */
-    height: 50px; /* Comienza con 0px de altura */
+    height: 75px; /* Comienza con 0px de altura */
 }
 
 .bg-yellow {

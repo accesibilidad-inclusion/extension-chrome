@@ -307,7 +307,10 @@ const alertOff = () => {
             <i class="fas fa-redo w-6 h-6" style="font-size: 22px;z-index: 999;"></i>
         </button>
 
-        <button @click="alertOn" class="fixed bottom-[20px] right-5 w-12 h-12 flex items-center justify-center bg-white shadow-lg rounded-full border border-black z-30 hover:bg-gray-100">
+        <button v-if="guide.steps.length == 0" style="opacity: 0.5;" class="fixed bottom-[20px] right-5 w-12 h-12 flex items-center justify-center bg-white shadow-lg rounded-full border border-black z-30 hover:bg-gray-100">
+            <i class="fas fa-check w-6 h-6" style="font-size: 22px;z-index: 999;"></i>
+        </button>
+        <button v-if="guide.steps.length > 0" @click="alertOn" class="fixed bottom-[20px] right-5 w-12 h-12 flex items-center justify-center bg-white shadow-lg rounded-full border border-black z-30 hover:bg-gray-100">
             <i class="fas fa-check w-6 h-6" style="font-size: 22px;z-index: 999;"></i>
         </button>
 
@@ -324,6 +327,22 @@ const alertOff = () => {
   </div>
 </div>
 
+<div v-if="guide.steps.length == 0" class="mb-6">
+    <div class="bg-dark-yellow rounded-lg p-4 mb-6 flex flex-col justify-center items-center" style="border-radius: 20px; height: 500px;">
+  <div class="w-full flex flex-col justify-center items-center h-full text-center">
+    <div class="flex justify-center items-center mb-15">
+        <p v-if="!state.recording" class="font-semibold text-lg text-center">Haz click en grabar</p>
+        <p v-if="state.recording" class="font-semibold text-lg text-center">Ahora puedes grabar tus pasos <br>click en la web</p>
+    </div>
+    <div v-if="state.recording" class="btn-continueYelow font-semibold w-full mb-4 flex items-center justify-center">
+      <i style="font-size: 50px;position: relative;top: 100px" class="fas fa-arrow-left mr-2"></i>
+    </div>
+    <div v-if="!state.recording" class="btn-continueYelow font-semibold w-full mb-4 flex items-center justify-center">
+      <i style="font-size: 50px;position: relative;top: 100px;" class="fas fa-arrow-down mr-2"></i>
+    </div>
+  </div>
+</div>
+    </div>
 
     <div v-if="guide.steps.length > 0" class="bg-dark-yellow rounded-lg p-4 mb-6" style="border-radius: 20px;">
         <!-- Navegación entre pasos -->
@@ -349,7 +368,7 @@ const alertOff = () => {
     </div>
 
 
-    <div style="border-radius: 20px 20px 20px 20px;" class="mt-4 bg-white rounded-xl mb-20">
+    <div v-if="guide.steps.length > 0" style="border-radius: 20px 20px 20px 20px;" class="mt-4 bg-white rounded-xl mb-20">
 
          <!-- Imagen de la tarjeta -->
           <div class="relative flex" style="border-radius: 20px 20px 0 0;">
