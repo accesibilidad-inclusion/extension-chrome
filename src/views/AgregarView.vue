@@ -99,7 +99,7 @@
         proceed() {
             console.log('Proceed button clicked'); // Verifica que el método se está llamando
             if (this.isInputValid) {
-                this.$router.push({ name: 'Grabar', query: { taskName: this.taskName } });
+                this.$router.push({ name: 'RecordingView', query: { taskName: this.taskName } });
                 console.log("esto envia");
                 console.log(this.taskName);
 

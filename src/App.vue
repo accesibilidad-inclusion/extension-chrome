@@ -20,7 +20,7 @@
         {{ getMessage("backToHome") }}
       </router-link>
 
-      <router-link v-if="$route.path === '/'" to="/agregar" >
+      <router-link v-if="$route.path === '/'" to="/recording" >
         <button class="fixed bottom-5 right-4 flex items-center bg-white shadow-lg rounded-full border border-black">
 
         <div class="p-2 flex items-center justify-center mr-2">
