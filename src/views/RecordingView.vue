@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { watch, onMounted, ref, nextTick } from "vue";
+import { watch, onMounted, ref, computed } from "vue";
 import type { AddStepData, FocusData, Step, Guide } from "@/scripts/types";
 import { addListener, sendMessage, getMessage } from "@/utils/chrome-utils";
 import { state, startRecording, stopRecording } from "@/service-worker";
-import { getGuideOrDefaultFromLocalStorage, removeGuideFromLocalStorage, saveGuideToLocalStorage } from "@/utils/chrome-utils";
+import {
+    getGuideOrDefaultFromLocalStorage,
+    removeGuideFromLocalStorage,
+    saveGuideToLocalStorage,
+} from "@/utils/chrome-utils";
 
 const guide = ref<Guide>({
     title: getMessage("taskDefaultName"),
@@ -13,22 +17,30 @@ const guide = ref<Guide>({
     tags_text: "",
 });
 
+const currentStepIndex = ref(0);
+
+const step = computed(() => {
+    if (guide.value.steps.length <= 0) return undefined;
+
+    return guide.value.steps[currentStepIndex.value];
+});
+
+const prevStep = () => {
+    if (currentStepIndex.value > 0) {
+        currentStepIndex.value--;
+    }
+};
+
+const nextStep = () => {
+    if (currentStepIndex.value < guide.value.steps.length - 1) {
+        currentStepIndex.value++;
+    }
+};
+
 const images = ref<HTMLImageElement[]>([]);
 
 const saveGuide = () => {
     saveGuideToLocalStorage(guide.value);
-};
-
-const smoothScroll = () => {
-    nextTick(() => {
-        const container = document.querySelector("#screenshots-container");
-        if (container) {
-            const lastStep = container.lastElementChild;
-            if (lastStep) {
-                lastStep.scrollIntoView({ behavior: "smooth" });
-            }
-        }
-    });
 };
 
 onMounted(() => {
@@ -41,7 +53,7 @@ onMounted(() => {
     getGuideOrDefaultFromLocalStorage().then((savedGuide) => {
         guide.value = savedGuide;
         if (guide.value.steps.length > 0) {
-            smoothScroll();
+            currentStepIndex.value = guide.value.steps.length - 1;
         }
     });
 });
@@ -71,7 +83,7 @@ const addStep = (data: AddStepData) => {
 
     guide.value.steps.push(newStep);
 
-    smoothScroll();
+    currentStepIndex.value = guide.value.steps.length - 1;
 };
 
 const clearSteps = () => {
@@ -79,6 +91,8 @@ const clearSteps = () => {
         stopRecording();
         guide.value.title = getMessage("taskDefaultName");
         guide.value.steps = [];
+
+        currentStepIndex.value = 0;
     });
 };
 
@@ -148,8 +162,8 @@ const openEditor = () => {
                 {{ guide.steps.length === 1 ? getMessage("step") : getMessage("steps") }}
             </h4>
         </div>
-        <ul class="mt-4 flex flex-col gap-6" id="screenshots-container">
-            <li v-for="(step, index) in guide.steps" :key="index">
+        <ul class="mt-4 flex flex-col gap-6">
+            <li v-if="step">
                 <p class="text-xl mb-2">
                     {{ `${getMessage("step").toUpperCase()} ${step.counter}` }}
                 </p>
@@ -168,13 +182,17 @@ const openEditor = () => {
                         :src="step.screenshotUrl"
                         class="w-full h-auto"
                         :alt="step.description"
-                        @load="onImageLoad($event, index)"
+                        @load="onImageLoad($event, currentStepIndex)"
                     />
                     <div
                         v-if="step.focusData.radius > 0"
                         class="absolute z-10 top-0 left-0 w-full h-full bg-black bg-opacity-50"
-                        :style="cutoutStyle(step.focusData, index)"
+                        :style="cutoutStyle(step.focusData, currentStepIndex)"
                     ></div>
+                </div>
+                <div>
+                    <button @click="prevStep">Previo</button>
+                    <button @click="nextStep">Siguiente</button>
                 </div>
             </li>
         </ul>
@@ -201,7 +219,7 @@ const openEditor = () => {
             </button>
             <button
                 @click="clearSteps"
-                class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+                class="bg-red-500 text-white py-2 px-4 rounded hover:bg-blue-600"
             >
                 {{ getMessage("clearSteps") }}
             </button>

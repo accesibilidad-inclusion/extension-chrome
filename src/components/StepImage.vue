@@ -513,7 +513,7 @@ defineExpose({ transformFinalImage });
                 {{ getMessage("deleteFocus") }}
             </button>
         </div>
-        <div v-if="editorMode === 'CENSURE'">
+        <div v-if="editorMode === 'CENSURE'" class="flex gap-2">
             <button
                 @click="undoCanvas"
                 class="button text-[#041C42] outline outline-1 text-sm outline-[#041C42]"

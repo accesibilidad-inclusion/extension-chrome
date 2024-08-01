@@ -8,16 +8,9 @@ import PictogramSelector from "@/components/PictogramSelector.vue";
 import SendTaskButton from "@/components/SendTaskButton.vue";
 import { getGuideOrDefaultFromLocalStorage, saveGuideToLocalStorage } from "@/utils/chrome-utils";
 
-// import { createApp } from 'vue'
 // @ts-ignore
 import { QuillEditor } from "@vueup/vue-quill";
 import "@vueup/vue-quill/dist/vue-quill.snow.css";
-
-// const app = createApp({
-//     components: {
-//         QuillEditor
-//     }
-// })
 
 const guide = ref<Guide>({
     title: getMessage("taskDefaultName"),

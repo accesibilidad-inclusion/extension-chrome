@@ -27,19 +27,113 @@ const selectPictogram = (pictogram: PictogramImage) => {
     emit("on-save-guide");
 };
 
-const getPictogramImageSrc = (pictogram: PictogramImage | null) => {
-    if (pictogram) return `https://app.pictos.cl/${pictogram.path}/${pictogram.filename}`;
+const defaultPictogram = (type: string | null) => {
+    const position = ref<number>(0); // Valor por defecto: posición 0 (click)
 
-    if (props.pictograms.length > 0)
-        return `https://app.pictos.cl/${props.pictograms[0].path}/${props.pictograms[0].filename}`;
+    switch (type) {
+        // Elementos de entrada de texto
+        case "input":
+        case "textarea":
+        case "textbox":
+        case "searchbox":
+            position.value = 37; // 'Input -texto'
+            break;
+
+        case "select":
+        case "option":
+        case "listbox":
+        case "combobox":
+            position.value = 20; // 'Botón'
+            break;
+
+        case "button":
+        case "a":
+        case "link":
+            position.value = 6; // 'Apretar boton'
+            break;
+
+        case "checkbox":
+            position.value = 23; // 'Casilla-de-verificación'
+            break;
+
+        case "radio":
+            position.value = 21; // 'Elegir'
+            break;
+
+        case "menuitem":
+            position.value = 22; // 'Seleccionar'
+            break;
+
+        case "tab":
+            position.value = 32; // 'Ventana-web'
+            break;
+
+        case "switch":
+            position.value = 31; // 'Switch'
+            break;
+
+        case "image":
+            position.value = 29; // 'Imagen'
+            break;
+
+        case "audio":
+            position.value = 26; // 'Audio'
+            break;
+
+        case "date":
+        case "time":
+            position.value = 17; // 'Reloj'
+            break;
+
+        case "search":
+            position.value = 14; // 'Buscar'
+            break;
+
+        case "file":
+            position.value = 24; // 'Adjuntar'
+            break;
+
+        case "password":
+            position.value = 25; // 'Contraseña'
+            break;
+
+        default:
+            position.value = 0;
+            break;
+    }
+    return position.value;
+};
+
+const getPictogramImageSrc = (pictogram: PictogramImage | null, type: string | null) => {
+    const path = ref<string>("");
+    const filename = ref<string>("");
+    if (pictogram) {
+        path.value = pictogram.path;
+        filename.value = pictogram.filename;
+        return `https://app.pictos.cl/${pictogram.path}/${pictogram.filename}`;
+    }
+
+    const id = defaultPictogram(type);
+    if (id < props.pictograms.length && props.pictograms[id]) {
+        path.value = props.pictograms[id].path;
+        filename.value = props.pictograms[id].filename;
+        return `https://app.pictos.cl/${props.pictograms[id].path}/${props.pictograms[id].filename}`;
+    }
 
     return "";
 };
 
-const getPictogramImageAlt = (pictogram: PictogramImage | null) => {
-    if (pictogram) return pictogram.label;
+const getPictogramImageAlt = (pictogram: PictogramImage | null, type: string | null) => {
+    if (pictogram?.label) return pictogram.label;
 
-    if (props.pictograms.length > 0) return props.pictograms[0].label;
+    const id = defaultPictogram(type);
+
+    if (props.pictograms && props.pictograms.length > 0 && id < props.pictograms.length) {
+        const selectedPictogram = props.pictograms[id];
+        if (selectedPictogram?.label) {
+            return selectedPictogram.label;
+        }
+    }
 
     return "";
 };
@@ -54,8 +148,8 @@ const getPictogramImageAlt = (pictogram: PictogramImage | null) => {
                 class="h-9 flex items-center justify-center"
             >
                 <img
-                    :src="getPictogramImageSrc(step.pictogram)"
-                    :alt="getPictogramImageAlt(step.pictogram)"
+                    :src="getPictogramImageSrc(step.pictogram, step.elementType)"
+                    :alt="getPictogramImageAlt(step.pictogram, step.elementType)"
                     class="h-full"
                 />
                 <svg
@@ -75,8 +169,8 @@ const getPictogramImageAlt = (pictogram: PictogramImage | null) => {
             </button>
             <img
                 v-else
-                :src="getPictogramImageSrc(step.pictogram)"
-                :alt="getPictogramImageAlt(step.pictogram)"
+                :src="getPictogramImageSrc(step.pictogram, step.elementType)"
+                :alt="getPictogramImageAlt(step.pictogram, step.elementType)"
                 class="h-9"
             />
         </div>
@@ -93,8 +187,8 @@ const getPictogramImageAlt = (pictogram: PictogramImage | null) => {
                     class="focus:outline-none"
                 >
                     <img
-                        :src="getPictogramImageSrc(pictogram)"
-                        :alt="getPictogramImageAlt(pictogram)"
+                        :src="getPictogramImageSrc(pictogram, null)"
+                        :alt="getPictogramImageAlt(pictogram, null)"
                         class="h-9"
                     />
                 </button>
