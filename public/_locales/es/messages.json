@@ -36,7 +36,7 @@
 		"description": "Texto botón para ir a interfaz de grabación"
 	},
 	"backToHome":{
-		"message": "Volver a inicio",
+		"message": "Volver",
 		"description": "Texto botón para volver a inicio"
 	},
 	"taskDefaultName":{
@@ -158,5 +158,105 @@
 	"sendingMessage":{
 		"message": "Enviando a PICTOS...",
 		"description": "Texto botón mientras se esta enviando una tarea a PICTOS"
+	},
+	"alertEditorTitle":{
+		"message": "¿Estás seguro de continuar?",
+		"description": "Texto titulo para la alerta de ir al editor."
+	},
+	"alertEditorDescription":{
+		"message": "Ahora podrás editar los pasos.",
+		"description": "Texto descripcion de la alerta para ir al editor."
+	},
+	"cancel":{
+		"message": "Cancelar",
+		"description": "Texto boton de cancelar."
+	},
+	"continue":{
+		"message": "Continuar",
+		"description": "Texto boton de continuar."
+	},
+	"notRecordingText":{
+		"message": "Haz click en grabar",
+		"description": "Texto en la vista de grabacion para indicar estado actual de grabacion."
+	},
+	"recordingText1":{
+		"message": "Ahora puedes grabar tus pasos",
+		"description": "Texto en la vista de grabacion para indicar estado actual de grabacion 1."
+	},
+	"recordingText2":{
+		"message": "click en la web",
+		"description": "Texto en la vista de grabacion para indicar estado actual de grabacion 2."
+	},
+	"of":{
+		"message": "de",
+		"description": "Autoexplicativo"
+	},
+	"tutorialStartRecording":{
+		"message": "Haz clic en el botón para grabar",
+		"description": "Texto explicativo para empezar a grabar."
+	},
+	"tutorialStepByStepTitle":{
+		"message": "Comienza a crear el paso a paso",
+		"description": "Texto titulo para explicar el paso a paso de la grabacion."
+	},
+	"tutorialStepByStepDescription":{
+		"message": "Se tomarán capturas de tus acciones en la pagina web y pictos guardara los pasos automáticamente",
+		"description": "Texto descriptivo para explicar el paso a paso de la grabacion."
+	},
+	"tutorialExampleStepImage":{
+		"message": "Ejemplo de un paso capturado",
+		"description": "Titulo para el ejemplo de un paso capturado."
+	},
+	"tutorialStopRecording":{
+		"message": "Para detener la grabación haz clic en",
+		"description": "Texto explicativo para terminar de grabar."
+	},
+	"tutorialAltertPrivacity":{
+		"message": "Tu privacidad es primero",
+		"description": "Texto explicativo privacidad."
+	},
+	"tutorialAlertPrivacityDescription":{
+		"message": "Pictos.cl no almacena datos personales.",
+		"description": "Texto explicativo privacidad mas detallado."
+	},
+	"tutorialPrivacityOk":{
+		"message": "Entendido",
+		"description": "Texto botón de compresion de la privacidad."
+	},
+	"tutorialVoiceStopRecording":{
+		"message": "Para detener la grabación haz clic en el botón Detener grabación",
+		"description": "Texto dicho mediante la voz para detener la grabacion."
+	},
+	"captureDefaultTitleButton":{
+		"message": "Haz click en el botón",
+		"description": "Titulo de paso por defecto al clicker un boton."
+	},
+	"captureDefaultTitleInputWithLabelOrPlaceholder":{
+		"message": "Ingresa tu",
+		"description": "Titulo inicial de paso por defecto cuando se realiza un input con label o placeholder"
+	},
+	"captureDefaultTitleInput":{
+		"message": "Ingresa el valor en el campo de entrada",
+		"description": "Titulo de paso por defecto para input."
+	},
+	"captureSelectWithSelected1": {
+		"message": "Selecciona",
+		"description": "Titulo de paso por defecto para select con valor seleccionado 1."
+	},
+	"captureSelectWithSelected2": {
+		"message": "en el menú desplegable",
+		"description": "Titulo de paso por defecto para select con valor seleccionado 2."
+	},
+	"captureSelectNoSelected":{
+		"message": "Selecciona una opción en el menú desplegable",
+		"description": "Titulo de paso por defecto para select sin selección."
+	},
+	"captureTextArea":{
+		"message": "Ingresa el texto en el área de texto",
+		"description": "Titulo de paso por defecto para TextArea."
+	},
+	"captureDefault":{
+		"message": "Interactúa con el elemento",
+		"description": "Titulo por defecto para elementos no considerados."
 	}
 }

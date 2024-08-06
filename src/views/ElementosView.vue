@@ -1,6 +1,6 @@
 <template>
   
-  <div class="p-6 bg-white p-4 min-h-screen">
+  <div class="p-6 bg-white min-h-screen">
     <div class="flex justify-between items-center mb-6">
       <!-- Logo SVG -->
       <img src="../../public/assets/img/logo.svg" class="app-nav__logo">
@@ -379,7 +379,6 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { useRouter } from 'vue-router';
 
 export default defineComponent({
   data() {

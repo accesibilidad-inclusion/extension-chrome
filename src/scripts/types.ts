@@ -58,7 +58,7 @@ interface BaseAction {
 }
 
 interface ApplicationAction extends BaseAction {
-    action: "UPDATE_ICON_AIDS_AVAILABLE" | "CLEAR_SIDEPANEL" | "NAVIGATE_TO_EDITOR";
+    action: "UPDATE_ICON_AIDS_AVAILABLE" | "CLEAR_SIDEPANEL" | "NAVIGATE_TO_EDITOR" | "CHECK_AVAILABLE_AID";
 }
 
 interface SidepanelAction extends BaseAction {
@@ -120,8 +120,8 @@ export type {
     FocusData,
     Extent,
     PictogramImage,
-    ApplicationAction,
     PictosAction,
+    ApplicationAction,
     SidepanelAction,
     CaptureScreenshotAction,
     AddStepAction,

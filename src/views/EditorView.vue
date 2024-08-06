@@ -2,16 +2,16 @@
 import { onMounted, ref, watch } from "vue";
 import type { Guide, PictogramImage } from "@/scripts/types";
 import { getMessage } from "@/utils/chrome-utils";
-import jsPDF from "jspdf";
 import StepImage from "@/components/StepImage.vue";
 import PictogramSelector from "@/components/PictogramSelector.vue";
 import SendTaskButton from "@/components/SendTaskButton.vue";
 import { getGuideOrDefaultFromLocalStorage, saveGuideToLocalStorage } from "@/utils/chrome-utils";
+import jsPDF from "jspdf";
+import { pdfLinkSvg, pdfAddTextContent, pdfStep } from "@/utils/pdf-utls";
 
 // @ts-ignore
 import { QuillEditor } from "@vueup/vue-quill";
 import "@vueup/vue-quill/dist/vue-quill.snow.css";
-import html2canvas from "html2canvas";
 
 const guide = ref<Guide>({
     title: getMessage("taskDefaultName"),
@@ -83,7 +83,10 @@ const editGuideUrl = (url: string) => {
 };
 
 const editPrerequisites = (prerequisites: string) => {
-    if (prerequisites === "<p><br></p>") {
+    if (
+        prerequisites.replace(/\s/g, "") === "<p><br></p>" ||
+        prerequisites.replace(/\s/g, "") === "<p></p>"
+    ) {
         guide.value.prerequisites = "";
     } else {
         guide.value.prerequisites = prerequisites;
@@ -100,7 +103,10 @@ const editStepTitle = (index: number, newTitle: string) => {
 
 const editDescription = (index: number, newDescription: string) => {
     if (guide.value.steps[index]) {
-        if (guide.value.steps[index].description === "<p><br></p>") {
+        if (
+            newDescription.replace(/\s/g, "") === "<p><br></p>" ||
+            newDescription.replace(/\s/g, "") === "<p></p>"
+        ) {
             guide.value.steps[index].description = "";
         } else {
             guide.value.steps[index].description = newDescription;
@@ -180,81 +186,68 @@ const editActionUrl = (index: number, url: string) => {
 watch(guide, saveGuide, { deep: true });
 
 const downloadGuide = async () => {
-    // const pdf = new jsPDF("p", "mm", "a4");
+    if (guide.value.steps.length <= 0) {
+        const pdf = new jsPDF({
+            orientation: "p",
+            unit: "px",
+            format: [800, 890],
+            hotfixes: ["px_scaling"],
+        });
 
-    // // Add title to the PDF
-    // pdf.setFontSize(24);
-    // pdf.text(guide.value.title, 20, 20);
+        pdf.setFillColor(202, 224, 255);
+        pdf.rect(0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight(), "F");
 
-    // let yOffset = 40;
+        pdf.setFontSize(24);
+        pdf.setFont("helvetica", "bold");
+        pdf.text(guide.value.title, 50, 50);
 
-    // for (const step of guide.value.steps) {
-    //     pdf.setFontSize(16);
-    //     pdf.text(`Paso ${step.counter}: ${step.title}`, 20, yOffset);
+        await pdfLinkSvg(pdf, 50, 80, guide.value.url);
 
-    //     yOffset += 10;
+        const prerequisites = document.getElementById("pdf-prerequisites") as HTMLElement;
+        pdfAddTextContent(pdf, prerequisites, 50, 170, 18, 17);
 
-    //     // Add description
-    //     pdf.setFontSize(12);
-    //     const descriptionLines = pdf.splitTextToSize(step.description, 170);
-    //     pdf.text(descriptionLines, 20, yOffset);
-    //     yOffset += 10 * descriptionLines.length;
+        return;
+    }
 
-    //     // Add screenshot
-    //     const imgWidth = 170;
-    //     const imgHeight = (170 * 9) / 16; // Assuming 16:9 aspect ratio, adjust if needed
-
-    //     if (yOffset + imgHeight > 280) {
-    //         pdf.addPage();
-    //         yOffset = 20;
-    //     }
-
-    //     pdf.addImage(step.screenshotUrl, "PNG", 20, yOffset, imgWidth, imgHeight);
-    //     yOffset += imgHeight + 20;
-
-    //     if (yOffset > 250) {
-    //         pdf.addPage();
-    //         yOffset = 20;
-    //     }
-    // }
+    const firstStepCanvas = document.getElementById("step-image-0") as HTMLCanvasElement;
 
     const pdf = new jsPDF({
         orientation: "p",
         unit: "px",
-        format: "a4",
+        format: [firstStepCanvas.width + firstStepCanvas.width * 0.2, firstStepCanvas.height * 2],
         hotfixes: ["px_scaling"],
     });
 
-    const pdfContent = document.getElementById("pdf-guide") as HTMLElement;
+    pdf.setFillColor(202, 224, 255);
+    pdf.rect(0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight(), "F");
 
-    html2canvas(pdfContent, {
-        width: pdfContent.offsetWidth,
-        height: pdfContent.offsetHeight,
-    }).then((canvas) => {
-        // Get the original width and height
-        const originalWidth = canvas.width;
-        const originalHeight = canvas.height;
+    pdf.setFontSize(24);
+    pdf.setFont("helvetica", "bold");
+    pdf.text(guide.value.title, 50, 50);
 
-        // Define the new width and calculate the new height to maintain the aspect ratio
-        const newWidth = pdf.internal.pageSize.getWidth(); // Set your desired width
-        const aspectRatio = originalHeight / originalWidth;
-        const newHeight = newWidth * aspectRatio;
+    await pdfLinkSvg(pdf, 50, 80, guide.value.url);
 
-        // Create a new canvas to draw the resized image
-        const resizedCanvas = document.createElement('canvas');
-        resizedCanvas.width = newWidth;
-        resizedCanvas.height = newHeight;
+    const prerequisites = document.getElementById("pdf-prerequisites") as HTMLElement;
+    const prerequisitesY = pdfAddTextContent(pdf, prerequisites, 50, 170, 18, 17);
 
-        const resizedContext = resizedCanvas.getContext('2d');
+    const stepDetails = document.getElementById("step-details-0") as HTMLElement;
+    await pdfStep(pdf, 50, prerequisitesY + 20, 1, guide.value.steps[0], firstStepCanvas, stepDetails);
 
-        // Draw the image from the original canvas to the new canvas with the new dimensions
-        resizedContext?.drawImage(canvas, 0, 0, newWidth, newHeight);
+    for (let i = 1; i < guide.value.steps.length; i++) {
+        pdf.addPage([
+            firstStepCanvas.width + firstStepCanvas.width * 0.2,
+            firstStepCanvas.height * 2,
+        ], "p");
 
-        const img = resizedCanvas.toDataURL();
+        pdf.setFillColor(202, 224, 255);
+        pdf.rect(0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight(), "F");
 
-        pdf.addImage(img, "PNG", 0, 0, newWidth, newHeight);
-        pdf.save(`${guide.value.title}.pdf`); 
-    });
+        const stepCanvas = document.getElementById(`step-image-${i}`) as HTMLCanvasElement;
+        const stepDetails = document.getElementById(`step-details-${i}`) as HTMLElement;
+        await pdfStep(pdf, 50, prerequisitesY + 20, i + 1, guide.value.steps[i], stepCanvas, stepDetails);
+    }
+
+    pdf.save(`${guide.value.title}.pdf`);
 };
 
 const onBeforeSendGuide = () => {
@@ -269,7 +262,7 @@ const onSendGuide = () => {
 </script>
 
 <template>
-    <div id="pdf-guide" class="bg-light-blue">
+    <div class="bg-light-blue">
         <div class="max-w-4xl mx-auto py-12" id="guide-content">
             <div class="flex justify-between items-center mb-8">
                 <h1 class="text-3xl font-semibold">{{ getMessage("editorName") }}</h1>
@@ -285,6 +278,7 @@ const onSendGuide = () => {
                         }}</span>
                     </button>
                     <button
+                        v-if="!isEditing"
                         @click="downloadGuide"
                         class="button text-[#041C42] bg-white outline outline-1 text-base outline-[#041C42]"
                     >
@@ -293,7 +287,7 @@ const onSendGuide = () => {
                 </div>
             </div>
 
-            <div class="mb-6">
+            <div class="mb-6 flex flex-col gap-4">
                 <div v-if="isEditing" class="flex flex-col gap-2">
                     <label class="text-base font-semibold text-[#041C42]">{{
                         getMessage("taskTitleLabel")
@@ -317,7 +311,7 @@ const onSendGuide = () => {
                         class="mt-1 input-edit focus:ring-0 w-full"
                     />
                 </div>
-                <div v-else class="my-5">
+                <div v-else id="pdf-link" class="my-5">
                     <a
                         v-if="guide.url.length > 0"
                         :href="guide.url"
@@ -338,18 +332,22 @@ const onSendGuide = () => {
                     <label class="text-base font-semibold text-[#041C42]">{{
                         getMessage("taskPrerequisitesLabel")
                     }}</label>
-                    <div
-                        class="bg-white rounded-xl overflow-hidden outline outline-1 outline-[#041C42]"
-                    >
+                    <div class="bg-white rounded-xl outline outline-1 outline-[#041C42]">
                         <QuillEditor
                             v-model:content="guide.prerequisites"
+                            :toolbar="['bold', 'italic', { list: 'ordered' }, 'link']"
                             @blur="editPrerequisites(guide.prerequisites)"
                             class="text-base input-edit focus:ring-0 w-full"
                             contentType="html"
                         />
                     </div>
                 </div>
-                <div v-else class="text-base" v-html="guide.prerequisites"></div>
+                <div
+                    v-else
+                    id="pdf-prerequisites"
+                    class="text-base"
+                    v-html="guide.prerequisites"
+                ></div>
             </div>
 
             <ul class="mt-4 flex flex-col gap-8" id="screenshots-container">
@@ -370,18 +368,17 @@ const onSendGuide = () => {
                             <label class="text-base font-semibold text-[#041C42]">{{
                                 getMessage("stepDetailsLabel")
                             }}</label>
-                            <div
-                                class="bg-white rounded-xl overflow-hidden outline outline-1 outline-[#041C42]"
-                            >
+                            <div class="bg-white rounded-xl outline outline-1 outline-[#041C42]">
                                 <QuillEditor
                                     v-model:content="step.description"
+                                    :toolbar="['bold', 'italic', { list: 'ordered' }, 'link']"
                                     @blur="editDescription(index, step.description)"
                                     class="text-base input-edit focus:ring-0 w-full"
                                     contentType="html"
                                 />
                             </div>
                         </div>
-                        <div v-else class="text-base" v-html="step.description"></div>
+                        <div v-else :id="`step-details-${index}`" class="text-base" v-html="step.description"></div>
                     </div>
                     <div v-if="isEditing" class="flex flex-col gap-2">
                         <label class="text-base font-semibold text-[#041C42]">{{
@@ -423,8 +420,8 @@ const onSendGuide = () => {
                         v-model="guide"
                     />
                     <div
-                        class="w-full bg-white flex justify-center p-5 content-center gap-4"
-                        style="border-radius: 0px 0px 20px 20px;"
+                        class="w-full bg-white flex p-5 content-center gap-4"
+                        style="border-radius: 0px 0px 20px 20px"
                     >
                         <PictogramSelector
                             :is-editing="isEditing"
@@ -435,7 +432,7 @@ const onSendGuide = () => {
                             v-model="guide"
                             @on-save-guide="saveGuide"
                         />
-                        <div class="flex items-center gap-4">
+                        <div class="flex items-center w-full gap-4">
                             <input
                                 v-if="isEditing"
                                 v-model="step.title"
@@ -468,12 +465,12 @@ const onSendGuide = () => {
             <button
                 v-if="isEditing"
                 @click="addStep"
-                class="mt-3 button text-white text-base bg-[#041C42]"
+                class="my-3 button text-white text-base bg-[#041C42]"
             >
                 {{ getMessage("addStep") }}
             </button>
             <SendTaskButton
-                v-if="guide.steps.length > 0 && !sendedGuide"
+                v-if="guide.steps.length > 0 && !sendedGuide && !isEditing"
                 :is-editing="isEditing"
                 @on-before-send-guide="onBeforeSendGuide"
                 @on-send-guide="onSendGuide"
@@ -527,5 +524,13 @@ const onSendGuide = () => {
 
 #quill-editor {
     background-color: white !important;
+}
+
+:deep(.ql-toolbar.ql-snow) {
+    border: 0 !important;
+}
+
+:deep(.ql-container.ql-snow) {
+    border: 0 !important;
 }
 </style>

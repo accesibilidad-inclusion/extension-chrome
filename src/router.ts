@@ -11,10 +11,10 @@ const routes = [
     { path: "/editor", name: "EditorView", component: EditorView },
     { path: "/elementos", name: "ElementosView", component: ElementosView },
     {
-        path: '/tutorial',
-        name: 'Tutorial',
-        component: TutorialView
-    }
+        path: "/tutorial",
+        name: "Tutorial",
+        component: TutorialView,
+    },
 ];
 
 const router = createRouter({

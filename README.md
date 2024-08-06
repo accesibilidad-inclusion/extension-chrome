@@ -18,17 +18,35 @@ Puedes [conocer más sobre PICTOS](https://www.pictos.cl/) en su sitio web [http
 git clone https://github.com/accesibilidad-inclusion/extension-chrome
 ```
 
+## En el terminal ingresa a la carpeta
+
+```sh
+cd extension-chrome
+```
+
 ## Cambia de branch.
 
 ```sh
 git switch refactor/vue
 ```
 
-En Chromium/Chrome, ingresa a `chrome://extensions/` y habilita el **Modo de desarrollador**.
+## Instala las libreriras necesarias
 
-Clickea el botón para **Cargar extensión sin empaquetar** y abre la carpeta donde clonaste el repo.
+```sh
+npm install
+```
 
-## Initialización del proyecto
+## Realiza la build para probar la extension
+
+```sh
+npm run build
+```
+
+En Chromium/Chrome, ingresa a `chrome://extensions/` y habilita el **Modo de desarrollador**.  
+  
+Clickea el botón para **Cargar extensión sin empaquetar** y busca la carpeta `dist`.  
+
+# Initialización del proyecto
 
 ```sh
 npm install

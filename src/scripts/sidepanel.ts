@@ -5,6 +5,9 @@ addListener((message: PictosAction) => {
     switch (message.action) {
         case "LOAD_AID_IN_SIDEPANEL": {
             const iframe = document.getElementById("pictos-frame") as HTMLIFrameElement;
+
+            if (!iframe) return;
+
             const iframeURL = new URL(message.url);
             iframeURL.pathname = iframeURL.pathname
                 .split("/")
@@ -20,6 +23,9 @@ addListener((message: PictosAction) => {
         }
         case "CLEAR_SIDEPANEL": {
             const iframe = document.getElementById("pictos-frame") as HTMLIFrameElement;
+
+            if (!iframe) return;
+
             const iframeURL = new URL(chrome.i18n.getMessage("extensionNotFoundUrl"));
             iframeURL.search = new URLSearchParams({ url: "" }).toString();
             iframe.src = iframeURL.toString();

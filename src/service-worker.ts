@@ -1,58 +1,24 @@
 /// <reference types="chrome"/>
 
 import { checkAvailableAid } from "@/utils/overlay-utils";
-import { compressImage } from "@/utils/image-utils";
+// import { compressImage } from "@/utils/image-utils";
 import type {
     PictosAction,
     SidepanelAction,
     CaptureScreenshotAction,
     OpenEditorAction,
-    UpdateRecordingStateAction,
 } from "@/scripts/types";
-import { sendMessage } from "@/utils/chrome-utils";
-import { reactive, watch } from "vue";
+import {
+    getRecordingState,
+    isUrl,
+    sendMessage,
+    setShowTutorial,
+    updateRecordingState,
+} from "@/utils/chrome-utils";
 
-export const state = reactive({
-    recording: false,
-});
-
-// Vamos a usar la API de storage de Chrome para persistir el estado reactivo
-chrome.storage.local.get(["recording"], (result) => {
-    state.recording = result.recording || false;
-});
-
-watch(
-    () => state.recording,
-    (newValue) => {
-        chrome.storage.local.set({ recording: newValue });
-        chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-            if (tab.id && tab.url && tab.url.startsWith("http")) {
-                chrome.tabs.sendMessage(
-                    tab.id,
-                    {
-                        action: "UPDATE_RECORDING_STATE",
-                        data: { recording: state.recording },
-                    } as UpdateRecordingStateAction,
-                    () => {
-                        if (chrome.runtime.lastError) {
-                            console.log(
-                                `Failed to send message to tab ${tab.id}: ${chrome.runtime.lastError.message}`,
-                            );
-                        }
-                    },
-                );
-            }
-        });
-    },
-);
-
-export const startRecording = () => {
-    state.recording = true;
-};
-
-export const stopRecording = () => {
-    state.recording = false;
-};
+// TODO: Cambiar textos a json
+// TODO: PDF
+// TODO: Arreglar botones en RecordingView.
 
 let editorTabId: number | undefined;
 let currentTabId: number | undefined;
@@ -61,21 +27,31 @@ chrome.sidePanel
     .setPanelBehavior({ openPanelOnActionClick: false })
     .catch((error) => console.error(error));
 
+const availableAid = async (tabUrl: string | undefined) => {
+    checkAvailableAid(tabUrl)
+        .then((url) => {
+            if (url) {
+                sendMessage({ action: "LOAD_AID_IN_SIDEPANEL", url: url }).catch((error) => {
+                    console.log("LOAD_AID_IN_SIDEPANEL ERROR:", error);
+                });
+            } else if (isUrl(tabUrl)) {
+                sendMessage({ action: "CLEAR_SIDEPANEL" }).catch((error) => {
+                    console.log("CLEAR_SIDEPANEL ERROR:", error);
+                });
+            }
+        })
+        .catch((error) => {
+            console.log("checkAvailableAid Error:", error);
+        });
+};
+
 chrome.action.onClicked.addListener((tab) => {
     if (editorTabId !== undefined && editorTabId === tab.id) return;
 
     if (!tab.url) return;
 
     chrome.sidePanel.open({ tabId: tab.id, windowId: tab.windowId }).then(() => {
-        checkAvailableAid(tab.url).then((url) => {
-            if (url) {
-                sendMessage({ action: "LOAD_AID_IN_SIDEPANEL", url: url });
-            } else {
-                sendMessage({ action: "CLEAR_SIDEPANEL" });
-            }
-        }).catch((error) => {
-            console.log("checkAvailableAid Error:", error);
-        });
+        availableAid(tab.url);
     });
 });
 
@@ -85,33 +61,32 @@ chrome.runtime.onConnect.addListener((port) => {
 
     if (editorTabId !== undefined && tabId === editorTabId) return;
 
-    chrome.tabs.sendMessage(
-        tabId,
-        {
-            action: "UPDATE_RECORDING_STATE",
-            data: { recording: state.recording },
-        } as UpdateRecordingStateAction,
-        () => {
-            if (chrome.runtime.lastError) {
-                console.log(
-                    `Failed to send message to tab ${tabId}: ${chrome.runtime.lastError.message}`,
-                );
-            }
-        },
-    );
+    getRecordingState().then((recording) => {
+        updateRecordingState(recording);
+    });
 });
 
-chrome.tabs.onUpdated.addListener((tabId) => {
-    currentTabId = tabId;
+chrome.tabs.onActivated.addListener((activeInfo) => {
+    currentTabId = activeInfo.tabId;
 
-    if (editorTabId !== undefined && editorTabId === tabId) {
-        console.log("NAVIGATE_TO_EDITOR");
+    if (editorTabId !== undefined && editorTabId === currentTabId) return;
+
+    chrome.tabs.get(currentTabId).then((tab) => {
+        availableAid(tab.url);
+    });
+});
+
+chrome.tabs.onUpdated.addListener((_a, _b, tab) => {
+    if (editorTabId !== undefined && editorTabId === currentTabId) {
         sendMessage({
             action: "NAVIGATE_TO_EDITOR",
         }).catch((error) => {
             console.log("NAVIGATE_TO_EDITOR Error:", error);
         });
+        return;
     }
+
+    availableAid(tab.url);
 });
 
 chrome.tabs.onRemoved.addListener((tabId) => {
@@ -127,6 +102,10 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 const onShowAidsAvailableIcon = async (sender: chrome.runtime.MessageSender) => {
     if (!sender.tab?.id) {
         console.error("tab id incorrecto!");
+        return;
+    }
+
+    if (sender.tab.id !== currentTabId) {
         return;
     }
 
@@ -147,6 +126,10 @@ const onOverlayOpenSidepanel = (action: SidepanelAction, sender: chrome.runtime.
         return;
     }
 
+    if (sender.tab.id !== currentTabId) {
+        return;
+    }
+
     chrome.sidePanel
         .open({
             tabId: sender.tab.id,
@@ -162,7 +145,7 @@ const onOverlayOpenSidepanel = (action: SidepanelAction, sender: chrome.runtime.
         });
 };
 
-const onTakeScreenshot = async (
+const onTakeScreenshot = (
     action: CaptureScreenshotAction,
     sender: chrome.runtime.MessageSender,
 ) => {
@@ -180,13 +163,13 @@ const onTakeScreenshot = async (
         return;
     }
 
-    chrome.tabs.captureVisibleTab({ format: "jpeg" }, async (dataUrl) => {
-        const compressedDataUrl = await compressImage(dataUrl);
+    chrome.tabs.captureVisibleTab({ format: "jpeg" }, (dataUrl) => {
+        //const compressedDataUrl = await compressImage(dataUrl);
 
         sendMessage({
             action: "ADD_STEP",
             data: {
-                dataUrl: compressedDataUrl,
+                dataUrl: dataUrl,
                 screenshotData: action.data.screenshotData,
                 title: action.data.title,
                 elementType: action.data.elementType,
@@ -209,6 +192,16 @@ const onOpenEditor = (action: OpenEditorAction) => {
     });
 };
 
+const onCheckAvailableAid = () => {
+    if (!currentTabId) return;
+
+    if (editorTabId !== undefined && editorTabId === currentTabId) return;
+
+    chrome.tabs.get(currentTabId).then((tab) => {
+        availableAid(tab.url);
+    });
+};
+
 const addedListener = (message: PictosAction, sender: chrome.runtime.MessageSender) => {
     switch (message.action) {
         case "UPDATE_ICON_AIDS_AVAILABLE":
@@ -223,9 +216,16 @@ const addedListener = (message: PictosAction, sender: chrome.runtime.MessageSend
         case "OPEN_EDITOR":
             onOpenEditor(message);
             break;
+        case "CHECK_AVAILABLE_AID":
+            onCheckAvailableAid();
+            break;
         default:
             break;
     }
 };
 
 chrome.runtime.onMessage.addListener(addedListener);
+
+chrome.runtime.onInstalled.addListener(() => {
+    setShowTutorial(true);
+});

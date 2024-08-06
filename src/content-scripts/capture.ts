@@ -1,4 +1,4 @@
-import { sendMessage, addListener } from "@/utils/chrome-utils";
+import { sendMessage, addListener, getMessage } from "@/utils/chrome-utils";
 import { debounce } from "lodash";
 
 let recording = false;
@@ -34,18 +34,18 @@ const createTitle = (el: Element): string => {
         case "button":
         case "a":
             title = textContent
-                ? `Haz click en el botón "${textContent}"`
-                : "Haz click en el botón";
+                ? `${getMessage("captureDefaultTitleButton")} "${textContent}"`
+                : getMessage("captureDefaultTitleButton");
             break;
         case "input": {
             const placeholder = (el as HTMLInputElement).placeholder;
             const label = el.getAttribute("aria-label") || el.getAttribute("aria-labelledby");
             if (label) {
-                title = `Ingresa tu ${label.toLowerCase()}`;
+                title = `${getMessage("captureDefaultTitleInputWithLabelOrPlaceholder")} ${label.toLowerCase()}`;
             } else if (placeholder) {
-                title = `Ingresa tu ${placeholder.toLowerCase()}`;
+                title = `${getMessage("captureDefaultTitleInputWithLabelOrPlaceholder")} ${placeholder.toLowerCase()}`;
             } else {
-                title = `Ingresa el valor en el campo de entrada`;
+                title = getMessage("captureDefaultTitleInput");
             }
 
             if (!(el as HTMLInputElement).hasAttribute("autocomplete")) {
@@ -57,17 +57,17 @@ const createTitle = (el: Element): string => {
         case "select": {
             const selectedOption = (el as HTMLSelectElement).selectedOptions[0]?.textContent;
             if (selectedOption) {
-                title = `Selecciona "${selectedOption}" en el menú desplegable`;
+                title = `${getMessage("captureSelectWithSelected1")} "${selectedOption}" ${getMessage("captureSelectWithSelected2")}`;
             } else {
-                title = `Selecciona una opción en el menú desplegable`;
+                title = getMessage("captureSelectNoSelected");
             }
             break;
         }
         case "textarea":
-            title = `Ingresa el texto en el área de texto`;
+            title = getMessage("captureTextArea");
             break;
         default:
-            title = `Interactúa con el elemento`;
+            title = getMessage("captureDefault");
             break;
     }
 

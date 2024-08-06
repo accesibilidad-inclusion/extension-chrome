@@ -105,18 +105,12 @@ const defaultPictogram = (type: string | null) => {
 };
 
 const getPictogramImageSrc = (pictogram: PictogramImage | null, type: string | null) => {
-    const path = ref<string>("");
-    const filename = ref<string>("");
     if (pictogram) {
-        path.value = pictogram.path;
-        filename.value = pictogram.filename;
         return `https://app.pictos.cl/${pictogram.path}/${pictogram.filename}`;
     }
 
     const id = defaultPictogram(type);
     if (id < props.pictograms.length && props.pictograms[id]) {
-        path.value = props.pictograms[id].path;
-        filename.value = props.pictograms[id].filename;
         return `https://app.pictos.cl/${props.pictograms[id].path}/${props.pictograms[id].filename}`;
     }
 
@@ -172,11 +166,12 @@ const getPictogramImageAlt = (pictogram: PictogramImage | null, type: string | n
                 :src="getPictogramImageSrc(step.pictogram, step.elementType)"
                 :alt="getPictogramImageAlt(step.pictogram, step.elementType)"
                 class="h-9"
+                :id="`step-pictogram-${index}`"
             />
         </div>
         <div
             v-if="toogleMenu"
-            class="absolute z-[100] top-0 left-0 mt-12 w-96 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none overflow-auto"
+            class="absolute z-[100] top-0 left-0 mt-12 w-[32rem] rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none overflow-auto"
             style="height: calc(100vh - 24rem)"
         >
             <div class="py-1 grid grid-cols-5 gap-2 p-2">
