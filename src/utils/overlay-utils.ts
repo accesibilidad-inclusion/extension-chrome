@@ -40,6 +40,7 @@ export async function checkAvailableAid(url?: string): Promise<string | undefine
         if (response.status === 404) {
             return undefined;
         }
+
         const json = await response.json();
         if (!json || !URL.canParse(json)) {
             return undefined;

@@ -498,7 +498,7 @@ defineExpose({ transformFinalImage });
 </script>
 
 <template>
-    <div v-if="isEditing" class="flex gap-2 mt-6 w-full mb-3">
+    <div v-if="isEditing" class="flex gap-2 mt-3 w-full mb-3">
         <button @click="toggleDefiningFocus" class="button text-white text-sm bg-[#004079]">
             {{ editorMode === "FOCUS" ? "Cancelar definición de enfoque" : "Definir enfoque" }}
         </button>

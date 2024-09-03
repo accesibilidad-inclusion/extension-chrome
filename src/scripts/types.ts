@@ -58,11 +58,11 @@ interface BaseAction {
 }
 
 interface ApplicationAction extends BaseAction {
-    action: "UPDATE_ICON_AIDS_AVAILABLE" | "CLEAR_SIDEPANEL" | "NAVIGATE_TO_EDITOR" | "CHECK_AVAILABLE_AID";
+    action: "UPDATE_ICON_AIDS_AVAILABLE" | "NAVIGATE_TO_EDITOR" | "CHECK_AVAILABLE_AID";
 }
 
 interface SidepanelAction extends BaseAction {
-    action: "OPEN_SIDEPANEL" | "LOAD_AID_IN_SIDEPANEL";
+    action: "OPEN_SIDEPANEL" | "LOAD_AID_IN_SIDEPANEL" | "CLEAR_SIDEPANEL";
     url: string;
 }
 

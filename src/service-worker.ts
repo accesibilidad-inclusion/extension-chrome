@@ -16,10 +16,6 @@ import {
     updateRecordingState,
 } from "@/utils/chrome-utils";
 
-// TODO: Cambiar textos a json
-// TODO: PDF
-// TODO: Arreglar botones en RecordingView.
-
 let editorTabId: number | undefined;
 let currentTabId: number | undefined;
 
@@ -35,7 +31,7 @@ const availableAid = async (tabUrl: string | undefined) => {
                     console.log("LOAD_AID_IN_SIDEPANEL ERROR:", error);
                 });
             } else if (isUrl(tabUrl)) {
-                sendMessage({ action: "CLEAR_SIDEPANEL" }).catch((error) => {
+                sendMessage({ action: "CLEAR_SIDEPANEL", url: tabUrl || "" }).catch((error) => {
                     console.log("CLEAR_SIDEPANEL ERROR:", error);
                 });
             }

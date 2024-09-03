@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import type { Guide } from "@/scripts/types";
 import { getMessage } from "@/utils/chrome-utils";
 
 interface Props {
     isEditing: boolean;
+}
+
+interface Api {
+    url: string;
+    venueId: number;
 }
 
 defineProps<Props>();
@@ -13,6 +18,22 @@ const emit = defineEmits<{ "on-send-guide": [], "on-before-send-guide": [] }>();
 
 const guide = defineModel<Guide>();
 const loading = ref<boolean>(false);
+
+const api = ref<Api | undefined>(undefined);
+
+onMounted(() => {
+    chrome.management.get(chrome.runtime.id).then((extensionInfo) => {
+        if (extensionInfo.installType === "development") {
+            api.value = {
+                url: getMessage("extensionApiSendDev"),
+                venueId: +getMessage("extensionApiVenueDev"),
+            };
+        } else {
+            // TODO: Implementar para produccion.
+            //getMessage("extensionApiSend");
+        }
+    });
+});
 
 interface PostStep {
     label: string;
@@ -39,20 +60,7 @@ const sendGuide = async () => {
 
     loading.value = true;
 
-    let apiUrl: string = "";
-    let onlineVenue: number = 0;
-
-    const extensionInfo = await chrome.management.get(chrome.runtime.id);
-
-    if (extensionInfo.installType === "development") {
-        apiUrl = "https://dev.api.pictos.cl/api/online_tasks/contribution";
-        onlineVenue = 6;
-    } else {
-        // TODO: Implementar para produccion.
-        return;
-    }
-
-    if (apiUrl.length === 0) {
+    if (!api.value) {
         loading.value = false;
         return;
     }
@@ -60,7 +68,7 @@ const sendGuide = async () => {
     emit("on-before-send-guide");
 
     const postData: PostTask = {
-        online_venue_id: onlineVenue,
+        online_venue_id: api.value.venueId,
         title: guide.value.title,
         url:
             guide.value.url && guide.value.url.length > 0
@@ -90,7 +98,7 @@ const sendGuide = async () => {
 
     const raw = JSON.stringify(postData);
 
-    fetch(apiUrl, {
+    fetch(api.value.url, {
         method: "POST",
         headers: myHeaders,
         body: raw,
@@ -110,6 +118,7 @@ const sendGuide = async () => {
 
 <template>
     <button
+        v-if="api"
         @click="sendGuide"
         class="button text-[#041C42] bg-white outline outline-1 text-base outline-[#041C42]"
         :disabled="isEditing || loading"

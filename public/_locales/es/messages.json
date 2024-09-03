@@ -15,6 +15,22 @@
 		"message": "https://api.pictos.cl/api/checkUrl",
 		"description": "URL de la API de PICTOS"
 	},
+    "extensionApiSendDev": {
+		"message": "https://dev.api.pictos.cl/api/online_tasks/contribution",
+		"description": "URL de la API de PICTOS para enviar pasos dev."
+    },
+    "extensionApiVenueDev": {
+		"message": "6",
+		"description": "Venue de la API de PICTOS para enviar pasos dev."
+    },
+    "extensionApiSend": {
+		"message": "",
+		"description": "URL de la API de PICTOS para enviar pasos."
+    },
+    "extensionApiVenue": {
+		"message": "",
+		"description": "Venue de la API de PICTOS para enviar pasos dev."
+    },
 	"extensionNotFoundUrl":{
 		"message": "https://app.pictos.cl/sin-ayuda-disponible",
 		"description": "URL de la página de PICTOS cuando no hay apoyos disponibles"
@@ -84,7 +100,7 @@
 		"description": "Texto botón para editar un elemento de un paso"
 	},
 	"stopEditElement":{
-		"message": "Dejar de editar",
+		"message": "Guardar",
 		"description": "Texto botón para dejar de editar un elemento de un paso"
 	},
 	"downloadTask":{

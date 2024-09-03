@@ -27,7 +27,7 @@ addListener((message: PictosAction) => {
             if (!iframe) return;
 
             const iframeURL = new URL(chrome.i18n.getMessage("extensionNotFoundUrl"));
-            iframeURL.search = new URLSearchParams({ url: "" }).toString();
+            iframeURL.search = new URLSearchParams({ url: message.url }).toString();
             iframe.src = iframeURL.toString();
 
             break;
