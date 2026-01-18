@@ -1,3 +1,4 @@
+// Escuchar mensajes del service worker
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 	const iframe = document.getElementById('pictos-frame');
 	if (message?.action === 'pictos__sidepanel-show-aid' && message.url) {
@@ -22,5 +23,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 		);
 		iframeURL.search = new URLSearchParams({ url: message.url }).toString();
 		iframe.src = iframeURL.toString();
+	}
+});
+
+// Escuchar mensajes postMessage del iframe
+window.addEventListener('message', (event) => {
+	if (event.data === 'SEARCH') {
+		// Solicitar al service worker que busque las ayudas para el tab actual
+		chrome.runtime.sendMessage({
+			action: 'pictos__search-aid-for-current-tab'
+		});
 	}
 });

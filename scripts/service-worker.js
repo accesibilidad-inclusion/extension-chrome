@@ -85,4 +85,27 @@ chrome?.runtime?.onMessage?.addListener((message, sender, sendResponse) => {
 			}, 50);
 		});
 	}
+
+	// Buscar ayudas para el tab actual cuando se selecciona la comuna
+	if (message?.action === 'pictos__search-aid-for-current-tab') {
+		chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+			if (tabs[0]?.url) {
+				PICTOS_checkAvailableAid(tabs[0].url).then((aidUrl) => {
+					if (aidUrl) {
+						chrome.runtime.sendMessage({
+							action: 'pictos__sidepanel-show-aid',
+							status: 'success',
+							url: aidUrl,
+						});
+					} else {
+						chrome.runtime.sendMessage({
+							action: 'pictos__sidepanel-empty',
+							status: 'empty',
+							url: tabs[0].url,
+						});
+					}
+				});
+			}
+		});
+	}
 });
